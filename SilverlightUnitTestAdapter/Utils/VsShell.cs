@@ -154,13 +154,36 @@ namespace SilverlightUnitTestAdapter.Utils
                 {
                     try
                     {
-                        if (message.EndsWith("\r"))
+                        int retryCount = 0;
+                        int maxRetryCount = 10;
+
+                        while (retryCount <= maxRetryCount)
                         {
-                            this.OutputWindowPanel.OutputString(message);
-                        }
-                        else
-                        {
-                            this.OutputWindowPanel.OutputString(string.Concat(message, "\r"));
+                            try
+                            {
+                                if (message.EndsWith("\r"))
+                                {
+                                    this.OutputWindowPanel.OutputString(message);
+                                }
+                                else
+                                {
+                                    this.OutputWindowPanel.OutputString(string.Concat(message, "\r"));
+                                }
+
+                                break;
+                            }
+                            catch (Exception)
+                            {
+                                // ex. Exception: The message filter indicated that the application is busy.
+                                if (retryCount >= maxRetryCount)
+                                {
+                                    throw;
+                                }
+
+                                System.Threading.Thread.Sleep(1000);
+                            }
+
+                            retryCount++;
                         }
                     }
                     catch (Exception exception)

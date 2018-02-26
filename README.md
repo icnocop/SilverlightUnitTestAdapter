@@ -4,7 +4,7 @@ Test adapter for Visual Studio 2015 to integrate Silverlight 5 Unit Tests, based
 
 [![Build status](https://ci.appveyor.com/api/projects/status/iwnuyva3s95ax25q/branch/master)](https://ci.appveyor.com/project/icnocop/silverlightunittestadapter/branch/master)
 
-![Screenshot](Installer\Screenshot.png)
+![Screenshot](Installer/Screenshot.png)
 
 ## Special Thanks
 

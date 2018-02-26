@@ -27,7 +27,7 @@ namespace SilverlightUnitTestAdapter
                 foreach (string source in sources)
                 {
                     List<DiscoveryInfo> discoveryResult = new List<DiscoveryInfo>();
-                    AssemblyLoader loader = new AssemblyLoader();
+                    AssemblyLoader loader = new AssemblyLoader(shell);
                     try
                     {
                         loader.Initialize(source);

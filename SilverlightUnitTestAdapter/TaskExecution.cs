@@ -96,7 +96,7 @@ namespace SilverlightUnitTestAdapter
         internal List<DiscoveryInfo> LoadAssemblies(string source)
         {
             List<DiscoveryInfo> discoveryResult = new List<DiscoveryInfo>();
-            AssemblyLoader loader = new AssemblyLoader();
+            AssemblyLoader loader = new AssemblyLoader(this.shell);
 
             try
             {

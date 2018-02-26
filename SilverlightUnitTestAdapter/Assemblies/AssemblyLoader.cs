@@ -9,6 +9,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
     using System.IO;
     using System.Reflection;
     using System.Security.Policy;
+    using SilverlightUnitTestAdapter.Utils;
 
     internal class AssemblyLoader : IDisposable
     {
@@ -16,8 +17,11 @@ namespace SilverlightUnitTestAdapter.Assemblies
 
         private ProxyLoader proxyDomain;
 
-        public AssemblyLoader()
+        private VsShell shell;
+
+        public AssemblyLoader(VsShell shell)
         {
+            this.shell = shell;
             this.appDomain = this.CreateChildDomain();
             this.proxyDomain = this.appDomain.CreateInstanceAndUnwrap(
                 Assembly.GetAssembly(typeof(ProxyLoader)).FullName,
@@ -70,7 +74,11 @@ namespace SilverlightUnitTestAdapter.Assemblies
         private AppDomain CreateChildDomain()
         {
             Evidence evidence = new Evidence(AppDomain.CurrentDomain.Evidence);
-            AppDomainSetup setup = AppDomain.CurrentDomain.SetupInformation;
+            AppDomainSetup setup = new AppDomainSetup
+            {
+                ApplicationBase = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+            };
+
             this.appDomain = AppDomain.CreateDomain("SomeAppDomain", evidence, setup);
             return this.appDomain;
         }

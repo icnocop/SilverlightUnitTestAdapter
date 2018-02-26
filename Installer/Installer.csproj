@@ -44,6 +44,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.exe.config">
+      <Link>StatLight.exe.config</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <None Include="packages.config" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -57,6 +62,74 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\Ionic.Zip.Reduced.dll">
+      <Link>Ionic.Zip.Reduced.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\Microsoft.Silverlight.Testing.License.txt">
+      <Link>Microsoft.Silverlight.Testing.License.txt</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.MSTest2009July.xap">
+      <Link>StatLight.Client.For.MSTest2009July.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.MSTest2009November.xap">
+      <Link>StatLight.Client.For.MSTest2009November.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.MSTest2009October.xap">
+      <Link>StatLight.Client.For.MSTest2009October.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.MSTest2010April.xap">
+      <Link>StatLight.Client.For.MSTest2010April.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.MSTest2010March.xap">
+      <Link>StatLight.Client.For.MSTest2010March.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.MSTest2010May.xap">
+      <Link>StatLight.Client.For.MSTest2010May.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.MSTest2011December.xap">
+      <Link>StatLight.Client.For.MSTest2011December.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.MSTest2011Feb.xap">
+      <Link>StatLight.Client.For.MSTest2011Feb.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.MSTest2011June.xap">
+      <Link>StatLight.Client.For.MSTest2011June.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.MSTest2011October.xap">
+      <Link>StatLight.Client.For.MSTest2011October.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.UnitDriven2009December.xap">
+      <Link>StatLight.Client.For.UnitDriven2009December.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Client.For.XUnitContrib2011April.xap">
+      <Link>StatLight.Client.For.XUnitContrib2011April.xap</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.Core.dll">
+      <Link>StatLight.Core.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.EULA.txt">
+      <Link>StatLight.EULA.txt</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.exe">
+      <Link>StatLight.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="bluebox.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
