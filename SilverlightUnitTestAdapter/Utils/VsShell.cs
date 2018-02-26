@@ -137,6 +137,7 @@ namespace SilverlightUnitTestAdapter.Utils
                     window.Visible = true;
                     OutputWindow outputWindow = (OutputWindow)window.Object;
                     this.OutputWindowPanel = this.GetWindowPane(outputWindow, "Silverlight Unit Test Adapter");
+                    this.OutputWindowPanel.Activate();
                 }
             }
         }
