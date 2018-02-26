@@ -120,9 +120,6 @@
   <data name="StatLightExitCodeMessage" xml:space="preserve">
     <value>StatLight return code:</value>
   </data>
-  <data name="StatLightTimedOut" xml:space="preserve">
-    <value>Time out while running StatLight</value>
-  </data>
   <data name="InformationNotAvailable" xml:space="preserve">
     <value>Information not available</value>
   </data>

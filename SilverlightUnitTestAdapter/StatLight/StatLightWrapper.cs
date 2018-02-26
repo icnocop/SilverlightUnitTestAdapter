@@ -31,7 +31,6 @@ namespace SilverlightUnitTestAdapter.StatLight
 
         internal void ExecuteStatLight(TestCaseArgument arguments)
         {
-            int timeout = 60000;
             Process process = new Process();
             try
             {
@@ -78,16 +77,11 @@ namespace SilverlightUnitTestAdapter.StatLight
                         process.Start();
                         process.BeginOutputReadLine();
                         process.BeginErrorReadLine();
-                        if (!process.WaitForExit(timeout) || !autoResetEvent.WaitOne(timeout) ? true : !autoResetEvent1.WaitOne(timeout))
-                        {
-                            autoResetEvent.Set();
-                            autoResetEvent1.Set();
-                            this.shell.Trace(Localized.StatLightTimedOut);
-                        }
-                        else
-                        {
-                            this.shell.Trace(string.Concat(Localized.StatLightExitCodeMessage, process.ExitCode));
-                        }
+                        process.WaitForExit();
+                        autoResetEvent.WaitOne();
+                        autoResetEvent1.WaitOne();
+
+                        this.shell.Trace(string.Concat(Localized.StatLightExitCodeMessage, process.ExitCode));
                     }
                     finally
                     {

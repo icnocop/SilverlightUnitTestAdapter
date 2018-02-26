@@ -130,7 +130,7 @@ namespace SilverlightUnitTestAdapter
             }
 
             this.shell.Trace("Waiting for all tasks to complete.");
-            Task.WaitAll(tasks.ToArray(), tasks.Count * 60000);
+            Task.WaitAll(tasks.ToArray());
             this.shell.Trace("All tasks finished");
         }
 
@@ -139,14 +139,7 @@ namespace SilverlightUnitTestAdapter
             Task task = this.CreateTestBasedTask(tests);
             this.shell.Trace("Start new task");
             task.Start();
-            if (tests.Count() <= 30)
-            {
-                task.Wait(60000);
-            }
-            else
-            {
-                task.Wait(tests.Count() * 2000);
-            }
+            task.Wait();
 
             this.shell.Trace("Ended new task");
         }
