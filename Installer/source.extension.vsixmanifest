@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="Silverlight Unit Test Adapter.Niels Hebling.7bc66174-d984-421f-8bb7-42a7fe553d4a" Version="1.0" Language="en-US" Publisher="Niels Hebling" />
+    <Identity Id="Silverlight Unit Test Adapter.7bc66174-d984-421f-8bb7-42a7fe553d4a" Version="1.0" Language="en-US" Publisher="Niels Hebling, Rami Abughazaleh, and contributors" />
     <DisplayName>Silverlight Unit Test Adapter</DisplayName>
-    <Description>Empty VSIX Project.</Description>
+    <Description xml:space="preserve">Visual Studio 2015 Unit Test adapter for Silverlight 5 unit tests</Description>
+    <MoreInfo>https://github.com/icnocop/SilverlightUnitTestAdapter</MoreInfo>
+    <Icon>bluebox.ico</Icon>
+    <PreviewImage>Screenshot.png</PreviewImage>
+    <Tags>Visual Studio 2015 Silverlight Unit Test Adapter StatLight</Tags>
   </Metadata>
   <Installation AllUsers="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0]" />
