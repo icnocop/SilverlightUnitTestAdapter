@@ -174,7 +174,7 @@ namespace SilverlightUnitTestAdapter.Utils
                             }
                             catch (Exception)
                             {
-                                // ex. Exception: The message filter indicated that the application is busy.
+                                // ex. Exception: The message filter indicated that the application is busy. (Exception from HRESULT: 0x8001010A (RPC_E_SERVERCALL_RETRYLATER))
                                 if (retryCount >= maxRetryCount)
                                 {
                                     throw;

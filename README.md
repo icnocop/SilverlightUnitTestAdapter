@@ -1,6 +1,6 @@
 # <img src="Installer\bluebox.ico" height="32" width="32"> Silverlight Unit Test Adapter
 
-Test adapter for Visual Studio 2015 to integrate Silverlight 5 Unit Tests, based on the Silverlight Unit Test project type from the Silverlight Toolkit, available using the native Test Explorer in Visual Studio 2015
+Visual Studio 2015 Unit Test adapter for Silverlight 5
 
 [![Build status](https://ci.appveyor.com/api/projects/status/iwnuyva3s95ax25q/branch/master)](https://ci.appveyor.com/project/icnocop/silverlightunittestadapter/branch/master)
 
