@@ -1,14 +1,22 @@
 version: 1.0.{build}
+configuration: Release
+platform: Any CPU
 assembly_info:
   patch: true
   file: '**\AssemblyInfo.*'
   assembly_version: '{version}'
   assembly_file_version: '{version}'
   assembly_informational_version: '{version}'
+install:
+- ps: (new-object Net.WebClient).DownloadString("https://raw.github.com/madskristensen/ExtensionScripts/master/AppVeyor/vsix.ps1") | iex
 before_build:
-- cmd: nuget restore
+- ps: >-
+    Vsix-IncrementVsixVersion | Vsix-UpdateBuildVersion
+
+    nuget restore
 build:
-  verbosity: minimal
+  project: SilverlightUnitTestAdapter.sln
+  verbosity: quiet
 artifacts:
 - path: .\Installer\bin\**\*.vsix
   name: VSIX
