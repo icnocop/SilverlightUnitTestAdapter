@@ -70,15 +70,6 @@ namespace SilverlightUnitTestAdapter {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Information not available.
-        /// </summary>
-        public static string InformationNotAvailable {
-            get {
-                return ResourceManager.GetString("InformationNotAvailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Loading and analyzing assembly:.
         /// </summary>
         public static string LoadingAndAnalyzingAssembly {

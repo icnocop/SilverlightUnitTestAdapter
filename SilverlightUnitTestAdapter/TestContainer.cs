@@ -12,100 +12,127 @@ namespace SilverlightUnitTestAdapter
     using Microsoft.VisualStudio.TestWindow.Extensibility;
     using Microsoft.VisualStudio.TestWindow.Extensibility.Model;
 
+    /// <summary>
+    /// Test Container.
+    /// </summary>
+    /// <seealso cref="Microsoft.VisualStudio.TestWindow.Extensibility.ITestContainer" />
     public class TestContainer : ITestContainer
     {
-        internal DateTime LastKnownChange;
-
         private readonly ITestContainerDiscoverer discoverer;
 
         private readonly string source;
 
-        private Uri executorUri;
-
         private readonly IEnumerable<Guid> debugEngines;
 
-        public IEnumerable<Guid> DebugEngines
-        {
-            get
-            {
-                return this.debugEngines;
-            }
-        }
+        private DateTime lastKnownChange;
 
-        public ITestContainerDiscoverer Discoverer
-        {
-            get
-            {
-                return this.discoverer;
-            }
-        }
-
-        public bool IsAppContainerTestContainer
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public string Source
-        {
-            get
-            {
-                return this.source;
-            }
-        }
-
-        public FrameworkVersion TargetFramework
-        {
-            get
-            {
-                return 0;
-            }
-        }
-
-        public Architecture TargetPlatform
-        {
-            get
-            {
-                return Architecture.X86;
-            }
-        }
-
-        public TestContainer(ITestContainerDiscoverer discoverer, string source, Uri executorUri) : this(discoverer, source, executorUri, Enumerable.Empty<Guid>())
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestContainer"/> class.
+        /// </summary>
+        /// <param name="discoverer">The discoverer.</param>
+        /// <param name="source">The source.</param>
+        public TestContainer(ITestContainerDiscoverer discoverer, string source)
+            : this(discoverer, source, Enumerable.Empty<Guid>())
         {
             if (!string.IsNullOrWhiteSpace(source))
             {
                 this.discoverer = discoverer;
                 this.source = source;
-                this.executorUri = executorUri;
                 this.debugEngines = new List<Guid>();
-                this.LastKnownChange = this.GetTimeStamp();
+                this.lastKnownChange = this.GetTimeStamp();
             }
         }
 
-        public TestContainer(ITestContainerDiscoverer discoverer, string source, Uri executorUri, IEnumerable<Guid> debugEngines)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestContainer"/> class.
+        /// </summary>
+        /// <param name="discoverer">The discoverer.</param>
+        /// <param name="source">The source.</param>
+        /// <param name="debugEngines">The debug engines.</param>
+        public TestContainer(ITestContainerDiscoverer discoverer, string source, IEnumerable<Guid> debugEngines)
         {
             if (!string.IsNullOrWhiteSpace(source))
             {
                 this.discoverer = discoverer;
                 this.source = source;
-                this.executorUri = executorUri;
                 this.debugEngines = debugEngines;
             }
         }
 
+        /// <summary>
+        /// Gets the debug engines.
+        /// </summary>
+        /// <value>The debug engines.</value>
+        public IEnumerable<Guid> DebugEngines => this.debugEngines;
+
+        /// <summary>
+        /// Gets the discoverer.
+        /// </summary>
+        /// <value>The discoverer.</value>
+        public ITestContainerDiscoverer Discoverer => this.discoverer;
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is application container test container.
+        /// </summary>
+        /// <value><c>true</c> if this instance is application container test container; otherwise, <c>false</c>.</value>
+        public bool IsAppContainerTestContainer => false;
+
+        /// <summary>
+        /// Gets the source.
+        /// </summary>
+        /// <value>The source.</value>
+        public string Source => this.source;
+
+        /// <summary>
+        /// Gets the target framework.
+        /// </summary>
+        /// <value>The target framework.</value>
+        public FrameworkVersion TargetFramework => 0;
+
+        /// <summary>
+        /// Gets the target platform.
+        /// </summary>
+        /// <value>The target platform.</value>
+        public Architecture TargetPlatform => Architecture.X86;
+
+        /// <summary>
+        /// Compares this instance to another.
+        /// </summary>
+        /// <param name="other">The other.</param>
+        /// <returns>System.Int32.</returns>
         public int CompareTo(ITestContainer other)
         {
             int num;
             TestContainer testContainer = other as TestContainer;
-            num = testContainer != null ? this.LastKnownChange.CompareTo(testContainer.LastKnownChange) : -1;
+            num = testContainer != null ? this.lastKnownChange.CompareTo(testContainer.lastKnownChange) : -1;
             return num;
         }
 
+        /// <summary>
+        /// Deploys the application container.
+        /// </summary>
+        /// <returns>The deployment data.</returns>
         public IDeploymentData DeployAppContainer()
         {
             return null;
+        }
+
+        /// <summary>
+        /// Snapshots this instance.
+        /// </summary>
+        /// <returns>The test container.</returns>
+        public ITestContainer Snapshot()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Returns a <see cref="string" /> that represents this instance.
+        /// </summary>
+        /// <returns>A <see cref="string" /> that represents this instance.</returns>
+        public override string ToString()
+        {
+            return string.Concat("executor://statlighttestadapter/v1/", this.Source);
         }
 
         private DateTime GetTimeStamp()
@@ -113,16 +140,6 @@ namespace SilverlightUnitTestAdapter
             DateTime dateTime;
             dateTime = (string.IsNullOrEmpty(this.Source) ? true : !File.Exists(this.Source)) ? DateTime.MinValue : File.GetLastWriteTime(this.Source);
             return dateTime;
-        }
-
-        public ITestContainer Snapshot()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override string ToString()
-        {
-            return string.Concat("executor://statlighttestadapter/v1/", this.Source);
         }
     }
 }

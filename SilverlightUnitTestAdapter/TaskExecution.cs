@@ -6,20 +6,24 @@ namespace SilverlightUnitTestAdapter
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
     using SilverlightUnitTestAdapter.Assemblies;
+    using SilverlightUnitTestAdapter.Helpers;
     using SilverlightUnitTestAdapter.StatLight;
     using SilverlightUnitTestAdapter.Tasks;
-    using SilverlightUnitTestAdapter.Utils;
 
+    /// <summary>
+    /// Task Execution.
+    /// </summary>
     internal class TaskExecution
     {
         private readonly LimitedConcurrencyLevelTaskScheduler scheduler;
 
-        private TaskFactory factory;
+        private readonly StatLightWrapper statLightWrapper;
+
+        private readonly VsShell shell;
 
         private int testsCompleted;
 
@@ -27,9 +31,12 @@ namespace SilverlightUnitTestAdapter
 
         private int testCancelled;
 
-        private readonly StatLightWrapper statLightWrapper;
-        private readonly VsShell shell;
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TaskExecution"/> class.
+        /// </summary>
+        /// <param name="frameworkHandle">The framework handle.</param>
+        /// <param name="statLightWrapper">The stat light wrapper.</param>
+        /// <param name="shell">The shell.</param>
         public TaskExecution(IFrameworkHandle frameworkHandle, StatLightWrapper statLightWrapper, VsShell shell)
         {
             this.statLightWrapper = statLightWrapper;
@@ -37,32 +44,46 @@ namespace SilverlightUnitTestAdapter
             this.FrameworkHandle = frameworkHandle;
 
             this.scheduler = new LimitedConcurrencyLevelTaskScheduler(-1);
-            this.factory = new TaskFactory(this.scheduler);
         }
 
-        public IFrameworkHandle FrameworkHandle
-        {
-            get;
-            set;
-        }
+        /// <summary>
+        /// Gets or sets the framework handle.
+        /// </summary>
+        /// <value>The framework handle.</value>
+        public IFrameworkHandle FrameworkHandle { get; set; }
 
+        /// <summary>
+        /// Converts the discovery information to test cases and runs them.
+        /// </summary>
+        /// <param name="source">The source.</param>
+        /// <param name="discoveryInfos">The discovery infos.</param>
         internal void ConvertAndRun(string source, List<DiscoveryInfo> discoveryInfos)
         {
             List<TestCase> testCases = new List<TestCase>();
             foreach (DiscoveryInfo discoveryResultItem in discoveryInfos)
             {
-                TestCase testCase = new TestCase(discoveryResultItem.GetFullMethodPath(), new Uri("executor://statlighttestadapter/v1"), source);
-                testCase.DisplayName = discoveryResultItem.GetFullMethodPath();
-                testCase.CodeFilePath = discoveryResultItem.ClassFilePath;
-                testCase.LineNumber = discoveryResultItem.LineOfCode;
+                TestCase testCase = new TestCase(
+                    discoveryResultItem.GetFullMethodPath(),
+                    new Uri(Constants.ExecutorUri),
+                    source)
+                {
+                    DisplayName = discoveryResultItem.GetFullMethodPath(),
+                    CodeFilePath = discoveryResultItem.ClassFilePath,
+                    LineNumber = discoveryResultItem.LineOfCode
+                };
                 testCases.Add(testCase);
             }
 
-            this.shell.Trace(string.Concat("Convertion successfull ", source));
+            this.shell.Trace(string.Concat("Conversion successful ", source));
             this.statLightWrapper.RunTests(testCases, this.FrameworkHandle);
-            this.shell.Trace(string.Concat("Running tests successfull ", source));
+            this.shell.Trace(string.Concat("Running tests successful ", source));
         }
 
+        /// <summary>
+        /// Creates the source based task.
+        /// </summary>
+        /// <param name="source">The source.</param>
+        /// <returns>The discovery information task.</returns>
         internal Task<List<DiscoveryInfo>> CreateSourceBasedTask(string source)
         {
             Task<List<DiscoveryInfo>> task = new Task<List<DiscoveryInfo>>(() => this.LoadAssemblies(source));
@@ -81,40 +102,46 @@ namespace SilverlightUnitTestAdapter
             return task;
         }
 
+        /// <summary>
+        /// Creates the test based task.
+        /// </summary>
+        /// <param name="testCases">The test cases.</param>
+        /// <returns>The task.</returns>
         internal Task CreateTestBasedTask(IEnumerable<TestCase> testCases)
         {
             Task task = new Task(() => this.statLightWrapper.RunTests(testCases, this.FrameworkHandle));
-            Action<Task> onSucceeded = result => this.TaskCompleted(testCases);
-            Action<Task> onFailed = result => this.TaskFailed(testCases);
-            Action<Task> onCancelled = result => this.TaskCancelled(testCases);
+            Action<Task> onSucceeded = result => this.TaskCompleted();
+            Action<Task> onFailed = result => this.TaskFailed();
+            Action<Task> onCancelled = result => this.TaskCancelled();
             task.ContinueWith(onSucceeded, TaskContinuationOptions.OnlyOnRanToCompletion);
             task.ContinueWith(onFailed, TaskContinuationOptions.OnlyOnFaulted);
             task.ContinueWith(onCancelled, TaskContinuationOptions.OnlyOnCanceled);
             return task;
         }
 
+        /// <summary>
+        /// Loads the assemblies.
+        /// </summary>
+        /// <param name="source">The source.</param>
+        /// <returns>The discovery information.</returns>
         internal List<DiscoveryInfo> LoadAssemblies(string source)
         {
-            List<DiscoveryInfo> discoveryResult = new List<DiscoveryInfo>();
-            AssemblyLoader loader = new AssemblyLoader(this.shell);
+            List<DiscoveryInfo> discoveryResult;
 
-            try
+            using (AssemblyLoader loader = new AssemblyLoader())
             {
                 loader.Initialize(source);
                 discoveryResult = loader.Load(source);
             }
-            finally
-            {
-                if (loader != null)
-                {
-                    ((IDisposable)loader).Dispose();
-                }
-            }
 
-            this.shell.Trace(string.Concat("Tests in assembly successfull discovered: ", source));
+            this.shell.Trace(string.Concat("Tests in assembly successfully discovered: ", source));
             return discoveryResult;
         }
 
+        /// <summary>
+        /// Starts the task.
+        /// </summary>
+        /// <param name="sources">The sources.</param>
         internal void StartTask(IEnumerable<string> sources)
         {
             this.testsCompleted = 0;
@@ -134,6 +161,10 @@ namespace SilverlightUnitTestAdapter
             this.shell.Trace("All tasks finished");
         }
 
+        /// <summary>
+        /// Starts the task.
+        /// </summary>
+        /// <param name="tests">The tests.</param>
         internal void StartTask(IEnumerable<TestCase> tests)
         {
             Task task = this.CreateTestBasedTask(tests);
@@ -144,6 +175,10 @@ namespace SilverlightUnitTestAdapter
             this.shell.Trace("Ended new task");
         }
 
+        /// <summary>
+        /// Indicates the task was cancelled.
+        /// </summary>
+        /// <param name="source">The source.</param>
         internal void TaskCancelled(string source)
         {
             this.testCancelled++;
@@ -152,11 +187,18 @@ namespace SilverlightUnitTestAdapter
             this.shell.Trace(string.Concat(str));
         }
 
-        internal void TaskCancelled(IEnumerable<TestCase> tests)
+        /// <summary>
+        /// Indicates the task was cancelled.
+        /// </summary>
+        internal void TaskCancelled()
         {
             this.shell.Trace("Task cancelled");
         }
 
+        /// <summary>
+        /// Represents an event that is raised when a task either successfully or unsuccessfully completes.
+        /// </summary>
+        /// <param name="source">The source.</param>
         internal void TaskCompleted(string source)
         {
             this.testsCompleted++;
@@ -165,11 +207,18 @@ namespace SilverlightUnitTestAdapter
             this.shell.Trace(string.Concat(str));
         }
 
-        internal void TaskCompleted(IEnumerable<TestCase> tests)
+        /// <summary>
+        /// Represents an event that is raised when a task either successfully or unsuccessfully completes.
+        /// </summary>
+        internal void TaskCompleted()
         {
             this.shell.Trace("Task completed");
         }
 
+        /// <summary>
+        /// Indicates the task failed.
+        /// </summary>
+        /// <param name="source">The source.</param>
         internal void TaskFailed(string source)
         {
             this.testsFailed++;
@@ -178,7 +227,10 @@ namespace SilverlightUnitTestAdapter
             this.shell.Trace(string.Concat(str));
         }
 
-        internal void TaskFailed(IEnumerable<TestCase> tests)
+        /// <summary>
+        /// Indicates the task failed.
+        /// </summary>
+        internal void TaskFailed()
         {
             this.shell.Trace("Task failed");
         }

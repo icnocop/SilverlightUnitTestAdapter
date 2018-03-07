@@ -6,66 +6,92 @@ namespace SilverlightUnitTestAdapter
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
     using SilverlightUnitTestAdapter.Assemblies;
-    using SilverlightUnitTestAdapter.Utils;
+    using SilverlightUnitTestAdapter.Helpers;
 
-    [DefaultExecutorUri("executor://statlighttestadapter/v1")]
+    /// <summary>
+    /// Test Discoverer.
+    /// </summary>
+    /// <seealso cref="Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter.ITestDiscoverer" />
+    [DefaultExecutorUri(Constants.ExecutorUri)]
     [FileExtension(".dll")]
     public class TestDiscoverer : ITestDiscoverer
     {
+        /// <summary>
+        /// Discovers the tests.
+        /// </summary>
+        /// <param name="sources">The sources.</param>
+        /// <param name="discoveryContext">The discovery context.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="discoverySink">The discovery sink.</param>
         public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
         {
+            if (sources == null)
+            {
+                throw new ArgumentNullException(nameof(sources));
+            }
+
+            if (discoverySink == null)
+            {
+                throw new ArgumentNullException(nameof(discoverySink));
+            }
+
             VsShell shell = new VsShell(logger);
-            shell.Initialize();
 
             try
             {
+                // Register the IOleMessageFilter to handle any threading errors.
+                MessageFilter.Register();
+
+                shell.Initialize(true);
+
                 foreach (string source in sources)
                 {
-                    List<DiscoveryInfo> discoveryResult = new List<DiscoveryInfo>();
-                    AssemblyLoader loader = new AssemblyLoader(shell);
-                    try
-                    {
-                        loader.Initialize(source);
-                        shell.Trace(string.Concat(Localized.LoadingAndAnalyzingAssembly, source));
-                        discoveryResult = loader.Load(source);
-                    }
-                    catch (Exception ex)
-                    {
-                        shell.Trace(ex.ToString());
-                        continue;
-                    }
-                    finally
-                    {
-                        if (loader != null)
-                        {
-                            ((IDisposable)loader).Dispose();
-                        }
-                    }
+                    List<DiscoveryInfo> discoveryResult;
 
-                    if (discoveryResult == null)
+                    using (AssemblyLoader loader = new AssemblyLoader())
                     {
-                        discoveryResult = new List<DiscoveryInfo>();
+                        try
+                        {
+                            loader.Initialize(source);
+                            shell.Trace(string.Concat(Localized.LoadingAndAnalyzingAssembly, source));
+                            discoveryResult = loader.Load(source);
+                        }
+                        catch (Exception ex)
+                        {
+                            shell.Trace(ex.ToString());
+                            continue;
+                        }
                     }
 
                     shell.Trace(string.Concat(Localized.ProcessingAssembly, discoveryResult.Count));
                     foreach (DiscoveryInfo discoveryResultItem in discoveryResult)
                     {
-                        TestCase testCase = new TestCase(discoveryResultItem.GetFullMethodPath(), new Uri("executor://statlighttestadapter/v1"), source);
-                        testCase.DisplayName = discoveryResultItem.GetFullMethodPath();
-                        testCase.CodeFilePath = discoveryResultItem.ClassFilePath;
-                        testCase.LineNumber = discoveryResultItem.LineOfCode;
+                        TestCase testCase = new TestCase(
+                            discoveryResultItem.GetFullMethodPath(),
+                            new Uri(Constants.ExecutorUri),
+                            source)
+                        {
+                            DisplayName = discoveryResultItem.GetFullMethodPath(),
+                            CodeFilePath = discoveryResultItem.ClassFilePath,
+                            LineNumber = discoveryResultItem.LineOfCode
+                        };
                         discoverySink.SendTestCase(testCase);
                     }
                 }
             }
             catch (Exception ex)
             {
+                shell.Trace($"Message: {ex.Message}");
                 shell.Trace(ex.ToString());
+            }
+            finally
+            {
+                // and turn off the IOleMessageFilter.
+                MessageFilter.Revoke();
             }
         }
     }

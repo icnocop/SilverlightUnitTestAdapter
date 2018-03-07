@@ -18,6 +18,10 @@ before_build:
 build:
   project: SilverlightUnitTestAdapter.sln
   verbosity: quiet
+after_build:
+- cmd: nuget pack .\SilverlightUnitTestAdapter.Plugin\SilverlightUnitTestAdapter.Plugin.nuspec -Prop version=%APPVEYOR_BUILD_VERSION% -Prop configuration=%CONFIGURATION%
 artifacts:
 - path: .\Installer\bin\**\*.vsix
   name: VSIX
+- path: SilverlightUnitTestAdapter.Plugin.*.nupkg
+  name: NuGet Package

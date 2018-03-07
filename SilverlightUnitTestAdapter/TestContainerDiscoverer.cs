@@ -6,112 +6,126 @@ namespace SilverlightUnitTestAdapter
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using EnvDTE;
     using EnvDTE80;
     using Microsoft.VisualStudio.TestWindow.Extensibility;
 
+    /// <summary>
+    /// Test Container Discoverer.
+    /// </summary>
+    /// <seealso cref="Microsoft.VisualStudio.TestWindow.Extensibility.ITestContainerDiscoverer" />
     public class TestContainerDiscoverer : ITestContainerDiscoverer
     {
         private readonly DTE2 dte;
 
         private readonly List<TestContainer> discoveredContainers;
 
-        public Uri ExecutorUri
-        {
-            get
-            {
-                return new Uri("executor://statlighttestadapter/v1");
-            }
-        }
-
-        public IEnumerable<ITestContainer> TestContainers
-        {
-            get
-            {
-                return this.discoveredContainers;
-            }
-        }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestContainerDiscoverer"/> class.
+        /// </summary>
+        /// <param name="dte">The DTE.</param>
         public TestContainerDiscoverer(DTE2 dte)
         {
             this.discoveredContainers = new List<TestContainer>();
             this.dte = dte;
-            if (this.dte == null ? false : this.dte.Events.SolutionEvents != null)
+            if (dte?.Events.SolutionEvents != null)
             {
                 this.dte.Events.SolutionEvents.Opened += this.SolutionEvents_Opened;
             }
         }
 
-        private void BuildEvents_OnBuildDone(vsBuildScope Scope, vsBuildAction Action)
+        /// <summary>
+        /// Occurs when the test containers are updated.
+        /// </summary>
+        public event EventHandler TestContainersUpdated;
+
+        /// <summary>
+        /// Gets the executor URI.
+        /// </summary>
+        /// <value>The executor URI.</value>
+        public Uri ExecutorUri => new Uri(Constants.ExecutorUri);
+
+        /// <summary>
+        /// Gets the test containers.
+        /// </summary>
+        /// <value>The test containers.</value>
+        public IEnumerable<ITestContainer> TestContainers => this.discoveredContainers;
+
+        /// <summary>
+        /// Gets the project full path.
+        /// </summary>
+        /// <param name="project">The project.</param>
+        /// <returns>The full path to the project.</returns>
+        internal static string GetProjectFullPath(Project project)
         {
+            return project.Properties == null ? string.Empty : project.FullName;
         }
 
-        private void CreateTestContainer(string assemblyPath)
+        /// <summary>
+        /// Gets the name of the project output file.
+        /// </summary>
+        /// <param name="project">The project.</param>
+        /// <returns>The project's output file name.</returns>
+        internal static string GetProjectOutputFileName(Project project)
         {
-            TestContainer container = new TestContainer(this, assemblyPath, new Uri("executor://statlighttestadapter/v1"));
-            this.discoveredContainers.Add(container);
-        }
+            string empty = string.Empty;
 
-        internal string GetProjectFullPath(Project project)
-        {
-            string str;
-            str = project.Properties == null ? string.Empty : project.FullName;
-            return str;
-        }
-
-        internal string GetProjectOutputFileName(Project project)
-        {
-            string empty;
-            if (project.Properties == null)
+            if (project.Properties != null)
             {
-                empty = string.Empty;
-            }
-            else
-            {
-                foreach (Property item in project.Properties)
-                {
-                    Debug.WriteLine(string.Concat(item.Name, ": ", item.Value));
-                }
-
                 empty = project.Properties.Item("OutputFileName").Value.ToString();
             }
 
             return empty;
         }
 
-        internal string GetProjectOutputPath(Project project)
+        /// <summary>
+        /// Gets the project output path.
+        /// </summary>
+        /// <param name="project">The project.</param>
+        /// <returns>The project's output path.</returns>
+        internal static string GetProjectOutputPath(Project project)
         {
-            string str;
-            str = project.ConfigurationManager == null ? string.Empty : project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString();
-            return str;
+            return project.ConfigurationManager == null ? string.Empty
+                : project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString();
         }
 
+        /// <summary>
+        /// Raises the containers updated event.
+        /// </summary>
         internal void RaiseContainersUpdatedEvent()
         {
-            if (this.TestContainersUpdated != null)
-            {
-                this.TestContainersUpdated(this, new EventArgs());
-            }
+            this.TestContainersUpdated?.Invoke(this, new EventArgs());
         }
 
+        /// <summary>
+        /// Reads the project information.
+        /// </summary>
+        /// <param name="project">The project.</param>
         internal void ReadProjectInfo(Project project)
         {
             if (project != null)
             {
-                string fullPath = this.GetProjectFullPath(project);
-                string outputDir = Path.Combine(fullPath, this.GetProjectOutputPath(project));
-                string outputFileName = this.GetProjectOutputFileName(project);
+                string fullPath = GetProjectFullPath(project);
+                string outputDir = Path.Combine(fullPath, GetProjectOutputPath(project));
+                string outputFileName = GetProjectOutputFileName(project);
                 this.CreateTestContainer(Path.Combine(outputDir, outputFileName));
             }
+        }
+
+        private void BuildEvents_OnBuildDone(vsBuildScope scope, vsBuildAction action)
+        {
+        }
+
+        private void CreateTestContainer(string assemblyPath)
+        {
+            TestContainer container = new TestContainer(this, assemblyPath);
+            this.discoveredContainers.Add(container);
         }
 
         private void SolutionEvents_Opened()
         {
             this.dte.Events.BuildEvents.OnBuildDone += this.BuildEvents_OnBuildDone;
         }
-
-        public event EventHandler TestContainersUpdated;
     }
 }

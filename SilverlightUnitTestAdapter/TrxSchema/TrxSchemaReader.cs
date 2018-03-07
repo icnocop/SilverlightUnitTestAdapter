@@ -10,86 +10,100 @@ namespace SilverlightUnitTestAdapter.TrxSchema
     using System.Linq;
     using System.Xml.Serialization;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-    using SilverlightUnitTestAdapter.Utils;
+    using SilverlightUnitTestAdapter.Helpers;
+    using SilverlightUnitTestAdapter.VSTS;
 
+    /// <summary>
+    /// TRX Schema Reader.
+    /// </summary>
     internal class TrxSchemaReader
     {
-        internal IEnumerable<TestCase> TestCases
-        {
-            get;
-            set;
-        }
-
         private readonly VsShell shell;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrxSchemaReader"/> class.
+        /// </summary>
+        /// <param name="shell">The shell.</param>
+        /// <param name="testCases">The test cases.</param>
         public TrxSchemaReader(VsShell shell, IEnumerable<TestCase> testCases)
         {
             this.shell = shell;
             this.TestCases = testCases;
         }
 
-        internal TestDefinitionType GetDefinitions(TestRunType testRun)
+        /// <summary>
+        /// Gets or sets the test cases.
+        /// </summary>
+        /// <value>The test cases.</value>
+        internal IEnumerable<TestCase> TestCases { get; set; }
+
+        /// <summary>
+        /// Gets the definitions.
+        /// </summary>
+        /// <param name="testRun">The test run.</param>
+        /// <returns>The test definitions.</returns>
+        internal static TestDefinitionType GetDefinitions(TestRunType testRun)
         {
-            TestDefinitionType testDefinitionType;
             if (testRun != null)
             {
                 TestDefinitionType definition = (
-                    from e in (IEnumerable<object>)testRun.Items
+                    from e in testRun.Items
                     where e is TestDefinitionType
                     select e).First() as TestDefinitionType;
                 if (definition != null)
                 {
-                    testDefinitionType = definition;
+                    var testDefinitionType = definition;
                     return testDefinitionType;
                 }
             }
 
-            testDefinitionType = null;
-            return testDefinitionType;
+            return null;
         }
 
-        internal ResultsType GetResults(TestRunType testRun)
+        /// <summary>
+        /// Gets the test results.
+        /// </summary>
+        /// <param name="testRun">The test run.</param>
+        /// <returns>The test results.</returns>
+        internal static ResultsType GetResults(TestRunType testRun)
         {
-            ResultsType resultsType;
             if (testRun != null)
             {
                 ResultsType result = (
-                    from e in (IEnumerable<object>)testRun.Items
+                    from e in testRun.Items
                     where e is ResultsType
                     select e).First() as ResultsType;
                 if (result != null)
                 {
-                    resultsType = result;
+                    var resultsType = result;
                     return resultsType;
                 }
             }
 
-            resultsType = null;
-            return resultsType;
+            return null;
         }
 
+        /// <summary>
+        /// Processes the StatLight result.
+        /// </summary>
+        /// <param name="testRun">The test run.</param>
+        /// <returns>The test results.</returns>
         internal IEnumerable<TrxResult> ProcessStatLightResult(TestRunType testRun)
         {
             IEnumerable<TrxResult> trxResults = new List<TrxResult>();
-            TestDefinitionType definition = this.GetDefinitions(testRun);
-            ResultsType results = this.GetResults(testRun);
-            if (definition == null ? false : results != null)
+            TestDefinitionType definition = GetDefinitions(testRun);
+            ResultsType results = GetResults(testRun);
+            if (definition != null && results != null)
             {
-                if (definition.Items == null ? false : results.Items != null)
+                if (definition.Items != null && results.Items != null)
                 {
-                    IEnumerable<UnitTestType> unitTestDefinitions = 
-                        from e in (IEnumerable<object>)definition.Items
-                        where e is UnitTestType
-                        select e as UnitTestType;
-                    IEnumerable<UnitTestResultType> items = 
-                        from e in (IEnumerable<object>)results.Items
-                        where e is UnitTestResultType
-                        select e as UnitTestResultType;
-                    trxResults = 
+                    IEnumerable<UnitTestType> unitTestDefinitions = definition.Items.OfType<UnitTestType>();
+                    IEnumerable<UnitTestResultType> items = results.Items.OfType<UnitTestResultType>();
+                    trxResults =
                         from e in unitTestDefinitions
                         from f in items
                         from g in this.TestCases
-                        where e.id != f.testId ? false : g.FullyQualifiedName == string.Concat(e.TestMethod.className, ".", e.TestMethod.name)
+                        where e.id == f.testId && g.FullyQualifiedName == string.Concat(e.TestMethod.className, ".", e.TestMethod.name)
                         select new TrxResult
                         {
                             UnitTest = e,
@@ -102,6 +116,11 @@ namespace SilverlightUnitTestAdapter.TrxSchema
             return trxResults;
         }
 
+        /// <summary>
+        /// Reads the specified TRX file path.
+        /// </summary>
+        /// <param name="trxFilePath">The TRX file path.</param>
+        /// <returns>The test run.</returns>
         internal TestRunType Read(string trxFilePath)
         {
             TestRunType testRunType;
@@ -114,22 +133,17 @@ namespace SilverlightUnitTestAdapter.TrxSchema
                     try
                     {
                         XmlSerializer serializer = new XmlSerializer(typeof(TestRunType));
-                        if (fileStreamReader == null ? false : serializer != null)
-                        {
-                            testRun = (TestRunType)serializer.Deserialize(fileStreamReader);
-                        }
+                        testRun = (TestRunType)serializer.Deserialize(fileStreamReader);
                     }
                     finally
                     {
-                        if (fileStreamReader != null)
-                        {
-                            ((IDisposable)fileStreamReader).Dispose();
-                        }
+                        fileStreamReader.Dispose();
                     }
                 }
                 catch (Exception exception)
                 {
                     this.shell.Trace(string.Concat(Localized.ErrorOnDeserializeTrxFile, trxFilePath));
+                    this.shell.Trace(exception.ToString());
                     testRunType = testRun;
                     return testRunType;
                 }

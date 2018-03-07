@@ -120,9 +120,6 @@
   <data name="StatLightExitCodeMessage" xml:space="preserve">
     <value>StatLight return code:</value>
   </data>
-  <data name="InformationNotAvailable" xml:space="preserve">
-    <value>Information not available</value>
-  </data>
   <data name="ErrorOnDeserializeTrxFile" xml:space="preserve">
     <value>Error on deserializing Result-File:</value>
   </data>

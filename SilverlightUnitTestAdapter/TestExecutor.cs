@@ -9,29 +9,42 @@ namespace SilverlightUnitTestAdapter
     using System.Linq;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+    using SilverlightUnitTestAdapter.Helpers;
     using SilverlightUnitTestAdapter.StatLight;
-    using SilverlightUnitTestAdapter.Utils;
 
-    [ExtensionUri("executor://statlighttestadapter/v1")]
+    /// <summary>
+    /// Test Executor.
+    /// </summary>
+    /// <seealso cref="Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter.ITestExecutor" />
+    [ExtensionUri(Constants.ExecutorUri)]
     public class TestExecutor : ITestExecutor
     {
-        private bool isCancelled;
-
+        /// <summary>
+        /// Cancels the test.
+        /// </summary>
         public void Cancel()
         {
-            this.isCancelled = true;
         }
 
+        /// <summary>
+        /// Runs the tests.
+        /// </summary>
+        /// <param name="sources">The sources.</param>
+        /// <param name="runContext">The run context.</param>
+        /// <param name="frameworkHandle">The framework handle.</param>
         public void RunTests(IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
             VsShell shell = new VsShell(frameworkHandle);
-            shell.Initialize();
 
             try
             {
+                // Register the IOleMessageFilter to handle any threading errors.
+                MessageFilter.Register();
+
+                shell.Initialize(true);
+
                 StatLightWrapper statLightWrapper = new StatLightWrapper(shell);
 
-                List<TestCase> collectedTestCases = new List<TestCase>();
                 TaskExecution taskExecution = new TaskExecution(frameworkHandle, statLightWrapper, shell);
                 taskExecution.StartTask(sources);
             }
@@ -40,31 +53,53 @@ namespace SilverlightUnitTestAdapter
                 shell.Trace(ex.ToString());
                 throw;
             }
+            finally
+            {
+                // and turn off the IOleMessageFilter.
+                MessageFilter.Revoke();
+            }
         }
 
+        /// <summary>
+        /// Runs the tests.
+        /// </summary>
+        /// <param name="tests">The tests.</param>
+        /// <param name="runContext">The run context.</param>
+        /// <param name="frameworkHandle">The framework handle.</param>
         public void RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
             VsShell shell = new VsShell(frameworkHandle);
-            shell.Initialize();
 
             try
             {
+                // Register the IOleMessageFilter to handle any threading errors.
+                MessageFilter.Register();
+
+                shell.Initialize(true);
 
                 shell.Trace("Start executing Silverlight tests. Based on the selected number of tests this might take some time...");
-                shell.Trace(string.Concat(tests.Count(), " will be executed."));
+
+                IEnumerable<TestCase> testCases = tests.ToList();
+                shell.Trace(string.Concat(testCases.Count(), " will be executed."));
 
                 StatLightWrapper statLightWrapper = new StatLightWrapper(shell);
 
                 TaskExecution taskExecution = new TaskExecution(frameworkHandle, statLightWrapper, shell);
-                taskExecution.StartTask(tests);
+                taskExecution.StartTask(testCases);
 
-                int num = tests.Count();
+                int num = testCases.Count();
                 shell.Trace(string.Concat("----- Finished execution of ", num.ToString(), " tests. ----- "));
             }
             catch (Exception ex)
             {
+                shell.Trace($"Message: {ex.Message}");
                 shell.Trace(ex.ToString());
                 throw;
+            }
+            finally
+            {
+                // and turn off the IOleMessageFilter.
+                MessageFilter.Revoke();
             }
         }
     }

@@ -19,6 +19,8 @@
     <ErrorReport>prompt</ErrorReport>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\SilverlightUnitTestAdapter.XML</DocumentationFile>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -38,7 +40,7 @@
     <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="EnvDTE80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
@@ -53,40 +55,31 @@
     <Reference Include="Microsoft.VisualStudio.TestWindow.Interfaces">
       <HintPath>..\..\..\..\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestWindow.Interfaces.dll</HintPath>
     </Reference>
-    <Reference Include="ProductionStackTrace.Analyze, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\gimelfarb\ProductionStackTrace\ProductionStackTrace.Analyze\bin\Debug\v4.0\ProductionStackTrace.Analyze.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Management" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\NameValuePair.cs" />
     <Compile Include="Configuration\Settings.cs" />
+    <Compile Include="Helpers\Logger.cs" />
+    <Compile Include="Helpers\MessageFilter.cs" />
+    <Compile Include="Helpers\ProcessExtensions.cs" />
+    <Compile Include="Helpers\SerializationHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="vstst.cs">
-      <DependentUpon>vstst.xsd</DependentUpon>
-    </Compile>
+    <Compile Include="Helpers\NativeMethods.cs" />
+    <Compile Include="Helpers\RetryHelper.cs" />
     <Compile Include="Assemblies\AssemblyLoader.cs">
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Assemblies\ProxyLoader.cs">
-      <AutoGen>false</AutoGen>
-      <DesignTimeSharedInput>false</DesignTimeSharedInput>
-    </Compile>
-    <Compile Include="LoadTestTypeRunConfigurationsRunConfigurationContextParameters.cs">
-      <AutoGen>false</AutoGen>
-      <DesignTimeSharedInput>false</DesignTimeSharedInput>
-    </Compile>
-    <Compile Include="LoadTestTypeRunConfigurationsRunConfigurationContextParametersContextParameter.cs">
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
@@ -102,7 +95,7 @@
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Utils\FrameworkHelper.cs">
+    <Compile Include="Helpers\FrameworkHelper.cs">
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
@@ -112,7 +105,7 @@
       <DesignTimeSharedInput>true</DesignTimeSharedInput>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Utils\VsShell.cs">
+    <Compile Include="Helpers\VsShell.cs">
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
@@ -124,7 +117,7 @@
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Utils\ProcessHelper.cs">
+    <Compile Include="Helpers\ProcessHelper.cs">
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
@@ -160,23 +153,35 @@
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="VSTS\vstst.cs">
+      <DependentUpon>vstst.xsd</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="Localized.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Localized.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vstst.xsd.cmd" />
+    <AdditionalFiles Include="..\stylecop.json">
+      <Link>stylecop.json</Link>
+    </AdditionalFiles>
     <None Include="packages.config" />
-    <AdditionalFiles Include="stylecop.json" />
-    <None Include="vstst.xsd">
+    <None Include="VSTS\vstst.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="VSTS\vstst.xsd.cmd" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\SilverlightUnitTestAdapter.Plugin\SilverlightUnitTestAdapter.Plugin.csproj">
+      <Project>{0B1967B1-B5BB-48A0-BCC0-AA0ABFD6222A}</Project>
+      <Name>SilverlightUnitTestAdapter.Plugin</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

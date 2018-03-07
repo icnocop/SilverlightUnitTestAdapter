@@ -2,30 +2,22 @@
 //   Copyright (c) Niels Hebling, Rami Abughazaleh, and contributors.  All rights reserved.
 // </copyright>
 
-namespace SilverlightUnitTestAdapter.Utils
+namespace SilverlightUnitTestAdapter.Helpers
 {
     using Microsoft.Win32;
 
-    internal class FrameworkHelper
+    /// <summary>
+    /// Framewor kHelper.
+    /// </summary>
+    internal static class FrameworkHelper
     {
         private static string silverlight5AssemblyPath;
 
-        private static FrameworkHelper instance;
-
-        public static FrameworkHelper Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = new FrameworkHelper();
-                }
-
-                return instance;
-            }
-        }
-
-        internal string Silverlight5AssemblyPath
+        /// <summary>
+        /// Gets the Silverlight 5 assembly path.
+        /// </summary>
+        /// <value>The Silverlight 5 assembly path.</value>
+        internal static string Silverlight5AssemblyPath
         {
             get
             {
@@ -38,16 +30,10 @@ namespace SilverlightUnitTestAdapter.Utils
             }
         }
 
-        private FrameworkHelper()
-        {
-        }
-
         private static string GetSilverlight5AssembliesPath()
         {
-            string str;
             string installRoot = ReadKey("SOFTWARE\\Microsoft\\Microsoft SDKs\\Silverlight\\v5.0\\ReferenceAssemblies", "SLRuntimeInstallPath");
-            str = string.IsNullOrWhiteSpace(installRoot) ? string.Empty : installRoot;
-            return str;
+            return string.IsNullOrWhiteSpace(installRoot) ? string.Empty : installRoot;
         }
 
         private static string ReadKey(string path, string key)
@@ -55,18 +41,26 @@ namespace SilverlightUnitTestAdapter.Utils
             string str;
             string value64 = string.Empty;
             string value32 = string.Empty;
-            RegistryKey localKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            localKey = localKey.OpenSubKey(path);
-            if (localKey != null)
+            using (RegistryKey localKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
             {
-                value64 = localKey.GetValue(key).ToString();
+                using (RegistryKey subKey = localKey.OpenSubKey(path))
+                {
+                    if (subKey != null)
+                    {
+                        value64 = subKey.GetValue(key).ToString();
+                    }
+                }
             }
 
-            RegistryKey localKey32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-            localKey32 = localKey32.OpenSubKey(path);
-            if (localKey32 != null)
+            using (RegistryKey localKey32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32))
             {
-                value32 = localKey32.GetValue(key).ToString();
+                using (RegistryKey subKey = localKey32.OpenSubKey(path))
+                {
+                    if (subKey != null)
+                    {
+                        value32 = subKey.GetValue(key).ToString();
+                    }
+                }
             }
 
             if (string.IsNullOrWhiteSpace(value64))

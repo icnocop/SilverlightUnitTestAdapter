@@ -11,6 +11,10 @@ namespace SilverlightUnitTestAdapter.Tasks
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Limited Concurrency Level Task Scheduler.
+    /// </summary>
+    /// <seealso cref="System.Threading.Tasks.TaskScheduler" />
     public class LimitedConcurrencyLevelTaskScheduler : TaskScheduler
     {
         [ThreadStatic]
@@ -22,22 +26,21 @@ namespace SilverlightUnitTestAdapter.Tasks
 
         private int delegatesQueuedOrRunning;
 
-        public sealed override int MaximumConcurrencyLevel
-        {
-            get
-            {
-                return this.maxDegreeOfParallelism;
-            }
-        }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LimitedConcurrencyLevelTaskScheduler"/> class.
+        /// </summary>
+        /// <param name="maxDegreeOfParallelism">The maximum degree of parallelism.</param>
         public LimitedConcurrencyLevelTaskScheduler(int maxDegreeOfParallelism)
         {
             if (maxDegreeOfParallelism < 1)
             {
                 int coreCount = 0;
-                foreach (ManagementBaseObject item in new ManagementObjectSearcher("Select * from Win32_Processor").Get())
+                using (ManagementObjectSearcher managementObjectSearcher = new ManagementObjectSearcher("Select * from Win32_Processor"))
                 {
-                    coreCount += int.Parse(item["NumberOfCores"].ToString());
+                    foreach (ManagementBaseObject item in managementObjectSearcher.Get())
+                    {
+                        coreCount += int.Parse(item["NumberOfCores"].ToString());
+                    }
                 }
 
                 this.maxDegreeOfParallelism = coreCount - 1;
@@ -46,6 +49,16 @@ namespace SilverlightUnitTestAdapter.Tasks
             this.maxDegreeOfParallelism = maxDegreeOfParallelism;
         }
 
+        /// <summary>
+        /// Gets the maximum concurrency level.
+        /// </summary>
+        /// <value>The maximum concurrency level.</value>
+        public sealed override int MaximumConcurrencyLevel => this.maxDegreeOfParallelism;
+
+        /// <summary>
+        /// Gets the scheduled tasks.
+        /// </summary>
+        /// <returns>The tasks.</returns>
         protected sealed override IEnumerable<Task> GetScheduledTasks()
         {
             IEnumerable<Task> array;
@@ -71,38 +84,10 @@ namespace SilverlightUnitTestAdapter.Tasks
             return array;
         }
 
-        private void NotifyThreadPoolOfPendingWork()
-        {
-            ThreadPool.UnsafeQueueUserWorkItem(_ => {
-                Task item;
-                currentThreadIsProcessingItems = true;
-                try
-                {
-                    while (true)
-                    {
-                        lock (this.tasks)
-                        {
-                            if (this.tasks.Count != 0)
-                            {
-                                item = this.tasks.First.Value;
-                                this.tasks.RemoveFirst();
-                            }
-                            else
-                            {
-                                this.delegatesQueuedOrRunning--;
-                                break;
-                            }
-                        }
-                        this.TryExecuteTask(item);
-                    }
-                }
-                finally
-                {
-                    currentThreadIsProcessingItems = false;
-                }
-            }, null);
-        }
-
+        /// <summary>
+        /// Queues the task.
+        /// </summary>
+        /// <param name="task">The task.</param>
         protected sealed override void QueueTask(Task task)
         {
             lock (this.tasks)
@@ -116,6 +101,11 @@ namespace SilverlightUnitTestAdapter.Tasks
             }
         }
 
+        /// <summary>
+        /// Tries to dequeue the task.
+        /// </summary>
+        /// <param name="task">The task.</param>
+        /// <returns><c>true</c> if the task was removed, <c>false</c> otherwise.</returns>
         protected sealed override bool TryDequeue(Task task)
         {
             bool flag;
@@ -127,6 +117,12 @@ namespace SilverlightUnitTestAdapter.Tasks
             return flag;
         }
 
+        /// <summary>
+        /// Tries to execute the specified task inline.
+        /// </summary>
+        /// <param name="task">The task.</param>
+        /// <param name="taskWasPreviouslyQueued">if set to <c>true</c> indicates the task was previously queued and will be dequeued before execution.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         protected sealed override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             bool flag;
@@ -145,6 +141,40 @@ namespace SilverlightUnitTestAdapter.Tasks
             }
 
             return flag;
+        }
+
+        private void NotifyThreadPoolOfPendingWork()
+        {
+            ThreadPool.UnsafeQueueUserWorkItem(
+                _ =>
+                {
+                    Task item;
+                    currentThreadIsProcessingItems = true;
+                    try
+                    {
+                        while (true)
+                        {
+                            lock (this.tasks)
+                            {
+                                if (this.tasks.Count != 0)
+                                {
+                                    item = this.tasks.First.Value;
+                                    this.tasks.RemoveFirst();
+                                }
+                                else
+                                {
+                                    this.delegatesQueuedOrRunning--;
+                                    break;
+                                }
+                            }
+                            this.TryExecuteTask(item);
+                        }
+                    }
+                    finally
+                    {
+                        currentThreadIsProcessingItems = false;
+                    }
+                }, null);
         }
     }
 }

@@ -9,30 +9,40 @@ namespace SilverlightUnitTestAdapter.Assemblies
     using System.IO;
     using System.Reflection;
     using System.Security.Policy;
-    using SilverlightUnitTestAdapter.Utils;
 
+    /// <summary>
+    /// Assembly Loader.
+    /// </summary>
+    /// <seealso cref="System.IDisposable" />
     internal class AssemblyLoader : IDisposable
     {
         private AppDomain appDomain;
 
         private ProxyLoader proxyDomain;
 
-        private VsShell shell;
-
-        public AssemblyLoader(VsShell shell)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AssemblyLoader"/> class.
+        /// </summary>
+        public AssemblyLoader()
         {
-            this.shell = shell;
             this.appDomain = this.CreateChildDomain();
             this.proxyDomain = this.appDomain.CreateInstanceAndUnwrap(
                 Assembly.GetAssembly(typeof(ProxyLoader)).FullName,
                 typeof(ProxyLoader).ToString()) as ProxyLoader;
         }
 
+        /// <summary>
+        /// Initializes the proxy domain loader.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public void Initialize(string source)
         {
             this.proxyDomain.Initialize(source);
         }
 
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             if (this.proxyDomain != null)
@@ -47,28 +57,21 @@ namespace SilverlightUnitTestAdapter.Assemblies
             }
         }
 
-        public List<DiscoveryInfo> Load(string path)
+        /// <summary>
+        /// Loads the specified file path.
+        /// </summary>
+        /// <param name="filePath">The file path.</param>
+        /// <returns>The discovery information.</returns>
+        public List<DiscoveryInfo> Load(string filePath)
         {
-            List<DiscoveryInfo> discoveryInfos = null;
-            FileInfo fi = new FileInfo(path);
+            List<DiscoveryInfo> discoveryInfos = new List<DiscoveryInfo>();
+            FileInfo fi = new FileInfo(filePath);
             if (fi.Exists)
             {
                 discoveryInfos = this.proxyDomain.Load(fi.FullName);
             }
 
             return discoveryInfos;
-        }
-
-        public Assembly LoadReference(string path)
-        {
-            Assembly assembly = null;
-            FileInfo fi = new FileInfo(path);
-            if (fi.Exists)
-            {
-                assembly = this.proxyDomain.LoadReference(fi.FullName);
-            }
-
-            return assembly;
         }
 
         private AppDomain CreateChildDomain()
@@ -80,6 +83,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
             };
 
             this.appDomain = AppDomain.CreateDomain("SomeAppDomain", evidence, setup);
+
             return this.appDomain;
         }
     }

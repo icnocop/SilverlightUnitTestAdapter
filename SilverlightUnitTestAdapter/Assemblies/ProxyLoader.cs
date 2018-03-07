@@ -8,8 +8,13 @@ namespace SilverlightUnitTestAdapter.Assemblies
     using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
-    using SilverlightUnitTestAdapter.Utils;
+    using SilverlightUnitTestAdapter.Helpers;
 
+    /// <summary>
+    /// Proxy Loader.
+    /// </summary>
+    /// <seealso cref="System.MarshalByRefObject" />
+    /// <seealso cref="System.IDisposable" />
     internal class ProxyLoader : MarshalByRefObject, IDisposable
     {
         private readonly AssemblyAnalyzer assemblyAnalyzer;
@@ -18,120 +23,82 @@ namespace SilverlightUnitTestAdapter.Assemblies
 
         private string sourcePath;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProxyLoader"/> class.
+        /// </summary>
         public ProxyLoader()
         {
             this.shell = new VsShell();
             this.assemblyAnalyzer = new AssemblyAnalyzer(this.shell);
-            AppDomain.CurrentDomain.AssemblyResolve += this.CurrentDomain_AssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve += this.OnAssemblyResolve;
         }
 
+        /// <summary>
+        /// Initializes the private fields of this instance.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public void Initialize(string source)
         {
             this.sourcePath = Path.GetDirectoryName(source);
             this.shell.Initialize();
         }
 
-        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            this.assemblyAnalyzer?.Dispose();
+
+            AppDomain.CurrentDomain.AssemblyResolve -= this.OnAssemblyResolve;
+        }
+
+        /// <summary>
+        /// Loads the specified assembly path.
+        /// </summary>
+        /// <param name="assemblyPath">The assembly path.</param>
+        /// <returns>The discovery information.</returns>
+        public List<DiscoveryInfo> Load(string assemblyPath)
+        {
+            List<DiscoveryInfo> discoveryInfos = new List<DiscoveryInfo>();
+
+            try
+            {
+                Assembly assembly = Assembly.LoadFrom(assemblyPath);
+
+                discoveryInfos = this.assemblyAnalyzer.AnalyzeAssembly(assemblyPath, assembly);
+            }
+            catch (Exception ex)
+            {
+                this.shell.Trace(ex.ToString());
+            }
+
+            return discoveryInfos;
+        }
+
+        private Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
         {
             this.shell.Trace(string.Concat("Resolving reference: ", args.Name));
+
             AssemblyName assemblyName = new AssemblyName(args.Name);
             string fileName = $"{assemblyName.Name}.dll";
 
             string filePath = Path.Combine(this.sourcePath, fileName);
             if (!File.Exists(filePath))
             {
-                filePath = Path.Combine(FrameworkHelper.Instance.Silverlight5AssemblyPath, fileName);
+                filePath = Path.Combine(FrameworkHelper.Silverlight5AssemblyPath, fileName);
             }
 
-            Assembly assembly = Assembly.LoadFile(filePath);
-            return assembly;
-        }
-
-        public void Dispose()
-        {
-            AppDomain.CurrentDomain.AssemblyResolve -= this.CurrentDomain_AssemblyResolve;
-        }
-
-        public List<DiscoveryInfo> Load(string assemblyPath)
-        {
-            List<DiscoveryInfo> discoveryInfos = null;
             try
             {
-                Assembly assembly = Assembly.LoadFrom(assemblyPath);
-                discoveryInfos = this.assemblyAnalyzer.AnalyzeAssembly(assemblyPath, assembly);
-                return discoveryInfos;
+                return Assembly.LoadFile(filePath);
             }
             catch (Exception ex)
             {
-                this.shell.Trace(ex.ToString());
-                return discoveryInfos;
-            }
-        }
-
-        internal Assembly LoadAlternative(string name)
-        {
-            Assembly assembly;
-            try
-            {
-                AssemblyName assemblyName;
-                try
-                {
-                    assemblyName = AssemblyName.GetAssemblyName(name);
-                }
-                catch (ArgumentException)
-                {
-                    assemblyName = new AssemblyName
-                    {
-                        CodeBase = name
-                    };
-                }
-
-                assembly = Assembly.Load(assemblyName);
-            }
-            catch (Exception)
-            {
-                try
-                {
-                    string assembly4Path = string.Empty;
-                    string assembly5Path = Path.Combine(FrameworkHelper.Instance.Silverlight5AssemblyPath, string.Concat(new AssemblyName(name).Name, ".dll"));
-                    if (File.Exists(assembly4Path))
-                    {
-                        assembly = Assembly.LoadFrom(assembly4Path);
-                        return assembly;
-                    }
-
-                    if (File.Exists(assembly5Path))
-                    {
-                        assembly = Assembly.LoadFrom(assembly5Path);
-                        return assembly;
-                    }
-
-                    return null;
-                }
-                catch (Exception exception)
-                {
-                    this.shell.Trace(exception.ToString());
-                }
-
-                return null;
+                this.shell.Trace($"Failed to load file '{filePath}'.{Environment.NewLine}{ex}");
             }
 
-            return assembly;
-        }
-
-        public Assembly LoadReference(string assemblyPath)
-        {
-            Assembly assembly;
-            try
-            {
-                assembly = !File.Exists(assemblyPath) ? Assembly.Load(assemblyPath) : Assembly.LoadFrom(assemblyPath);
-            }
-            catch (Exception)
-            {
-                assembly = this.LoadAlternative(assemblyPath);
-            }
-
-            return assembly;
+            return null;
         }
     }
 }

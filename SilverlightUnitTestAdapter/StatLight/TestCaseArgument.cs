@@ -8,34 +8,17 @@ namespace SilverlightUnitTestAdapter.StatLight
     using System.Text;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
+    /// <summary>
+    /// Test Case Argument.
+    /// </summary>
     internal class TestCaseArgument
     {
-        private string Argument
-        {
-            get;
-            set;
-        }
-
-        internal string AssemblyPath
-        {
-            get;
-            set;
-        }
-
-        internal List<TestCase> TestCases
-        {
-            get;
-            set;
-        }
-
-        internal string TestResultPath
-        {
-            get
-            {
-                return string.Concat(this.AssemblyPath, "_TestResult.xml");
-            }
-        }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestCaseArgument"/> class.
+        /// </summary>
+        /// <param name="arguments">The arguments.</param>
+        /// <param name="assemblyPath">The assembly path.</param>
+        /// <param name="testCases">The test cases.</param>
         public TestCaseArgument(string arguments, string assemblyPath, List<TestCase> testCases)
         {
             this.Argument = arguments;
@@ -43,6 +26,26 @@ namespace SilverlightUnitTestAdapter.StatLight
             this.TestCases = testCases;
         }
 
+        /// <summary>
+        /// Gets or sets the test cases.
+        /// </summary>
+        /// <value>The test cases.</value>
+        internal List<TestCase> TestCases { get; set; }
+
+        /// <summary>
+        /// Gets the test result path.
+        /// </summary>
+        /// <value>The test result path.</value>
+        internal string TestResultPath => string.Concat(this.AssemblyPath, "_TestResult.xml");
+
+        private string Argument { get; set; }
+
+        private string AssemblyPath { get; set; }
+
+        /// <summary>
+        /// Gets the arguments.
+        /// </summary>
+        /// <returns>System.String.</returns>
         internal string GetArguments()
         {
             StringBuilder builder = new StringBuilder();

@@ -2,31 +2,45 @@
 //   Copyright (c) Niels Hebling, Rami Abughazaleh, and contributors.  All rights reserved.
 // </copyright>
 
-namespace Configuration
+namespace SilverlightUnitTestAdapter.Configuration
 {
+    using System.Collections.Generic;
     using System.IO;
-    using System.Xml.Serialization;
+    using System.Runtime.Serialization;
+    using SilverlightUnitTestAdapter.Helpers;
 
-    [XmlRoot(ElementName = "configuration")]
+    /// <summary>
+    /// Settings.
+    /// </summary>
+    [DataContract]
     public class Settings
     {
         /// <summary>
-        /// Gets the settings.
+        /// Gets or sets the query string.
         /// </summary>
+        /// <value>The query string.</value>
+        [DataMember(EmitDefaultValue = false)]
+        public IDictionary<string, string> QueryString { get; set; }
+
+        /// <summary>
+        /// Gets or sets the plugins.
+        /// </summary>
+        /// <value>The plugins.</value>
+        [DataMember(EmitDefaultValue = false)]
+        public ICollection<string> Plugins { get; set; }
+
+        /// <summary>
+        /// Loads the settings from the specified configuration file path.
+        /// </summary>
+        /// <param name="configurationFilePath">The configuration file path.</param>
+        /// <returns>Settings.</returns>
         /// <value>
         /// The settings.
         /// </value>
         public static Settings Load(string configurationFilePath)
         {
-            XmlSerializer xmlSerializer = new XmlSerializer(typeof(Settings));
-            
-            FileStream fileStream = new FileStream(configurationFilePath, FileMode.Open);
-
-            return (Settings)xmlSerializer.Deserialize(fileStream);
+            string configuration = File.ReadAllText(configurationFilePath);
+            return SerializationHelper.FromJson<Settings>(configuration);
         }
-        
-        [XmlArray("queryString")]
-        [XmlArrayItem("add", typeof(NameValuePair))]
-        public NameValuePair[] QueryString { get; set; }
     }
 }

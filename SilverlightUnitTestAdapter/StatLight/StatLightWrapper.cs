@@ -8,111 +8,80 @@ namespace SilverlightUnitTestAdapter.StatLight
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
-    using System.Linq;
     using System.Reflection;
     using System.Text;
-    using System.Threading;
+    using System.Threading.Tasks;
     using Configuration;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+    using SilverlightUnitTestAdapter.Helpers;
     using SilverlightUnitTestAdapter.TrxSchema;
-    using SilverlightUnitTestAdapter.Utils;
+    using VSTS;
 
+    /// <summary>
+    /// StatLight Wrapper.
+    /// </summary>
     internal class StatLightWrapper
     {
-        internal bool isInstalled;
-
         private readonly VsShell shell;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StatLightWrapper"/> class.
+        /// </summary>
+        /// <param name="shell">The shell.</param>
         public StatLightWrapper(VsShell shell)
         {
             this.shell = shell;
         }
 
-        internal void ExecuteStatLight(TestCaseArgument arguments)
+        /// <summary>
+        /// Gets the test methods by assembly.
+        /// </summary>
+        /// <param name="testCases">The test cases.</param>
+        /// <returns>Dictionary&lt;System.String, List&lt;TestCase&gt;&gt;.</returns>
+        internal static Dictionary<string, List<TestCase>> GetTestMethodsByAssembly(IEnumerable<TestCase> testCases)
         {
-            Process process = new Process();
-            try
+            Dictionary<string, List<TestCase>> testMethodsInAssemblies = new Dictionary<string, List<TestCase>>();
+            foreach (TestCase testCase in testCases)
             {
-                string currentAssemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-                process.StartInfo.FileName = Path.Combine(currentAssemblyPath, "StatLight.exe");
-                process.StartInfo.Arguments = arguments.GetArguments();
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                StringBuilder stringBuilder = new StringBuilder();
-                StringBuilder stringBuilder1 = new StringBuilder();
-                AutoResetEvent autoResetEvent = new AutoResetEvent(false);
-                try
+                if (!testMethodsInAssemblies.ContainsKey(testCase.Source))
                 {
-                    AutoResetEvent autoResetEvent1 = new AutoResetEvent(false);
-                    try
-                    {
-                        process.OutputDataReceived += (sender, e) => {
-                            if (e.Data != null)
-                            {
-                                stringBuilder.AppendLine(e.Data);
-                                this.shell.Trace(e.Data);
-                            }
-                            else
-                            {
-                                autoResetEvent.Set();
-                            }
-                        };
-                        process.ErrorDataReceived += (sender, e) => {
-                            if (e.Data != null)
-                            {
-                                stringBuilder1.AppendLine(e.Data);
-                                this.shell.Trace(e.Data);
-                            }
-                            else
-                            {
-                                autoResetEvent1.Set();
-                            }
-                        };
-
-                        this.shell.Trace($"\"{process.StartInfo.FileName}\" {process.StartInfo.Arguments}");
-
-                        process.Start();
-                        process.BeginOutputReadLine();
-                        process.BeginErrorReadLine();
-                        process.WaitForExit();
-                        autoResetEvent.WaitOne();
-                        autoResetEvent1.WaitOne();
-
-                        this.shell.Trace(string.Concat(Localized.StatLightExitCodeMessage, process.ExitCode));
-                    }
-                    finally
-                    {
-                        if (autoResetEvent1 != null)
-                        {
-                            ((IDisposable)autoResetEvent1).Dispose();
-                        }
-                    }
+                    testMethodsInAssemblies.Add(
+                        testCase.Source,
+                        new List<TestCase> { testCase });
                 }
-                finally
+                else
                 {
-                    if (autoResetEvent != null)
-                    {
-                        ((IDisposable)autoResetEvent).Dispose();
-                    }
+                    testMethodsInAssemblies[testCase.Source].Add(testCase);
                 }
             }
-            finally
+
+            return testMethodsInAssemblies;
+        }
+
+        /// <summary>
+        /// Records the start tests.
+        /// </summary>
+        /// <param name="argument">The argument.</param>
+        /// <param name="frameworkHandle">The framework handle.</param>
+        internal static void RecordStartTests(TestCaseArgument argument, IFrameworkHandle frameworkHandle)
+        {
+            foreach (TestCase testCase in argument.TestCases)
             {
-                if (process != null)
-                {
-                    ((IDisposable)process).Dispose();
-                }
+                frameworkHandle.RecordStart(testCase);
             }
         }
 
-        internal List<TestCaseArgument> GetArguments(IEnumerable<TestCase> testCases)
+        /// <summary>
+        /// Gets the StatLight arguments.
+        /// </summary>
+        /// <param name="testCases">The test cases.</param>
+        /// <returns>List&lt;TestCaseArgument&gt;.</returns>
+        internal static List<TestCaseArgument> GetArguments(IEnumerable<TestCase> testCases)
         {
             List<TestCaseArgument> arguments = new List<TestCaseArgument>();
-            Dictionary<string, List<TestCase>> testMethodsInAssemblies = this.GetTestMethodsByAssembly(testCases);
-            if (testMethodsInAssemblies == null ? false : testMethodsInAssemblies.Count > 0)
+            Dictionary<string, List<TestCase>> testMethodsInAssemblies = GetTestMethodsByAssembly(testCases);
+            if (testMethodsInAssemblies != null && testMethodsInAssemblies.Count > 0)
             {
                 foreach (string assembly in testMethodsInAssemblies.Keys)
                 {
@@ -133,21 +102,35 @@ namespace SilverlightUnitTestAdapter.StatLight
                     argument.Append("\"");
 
                     string assemblyPath = Path.GetDirectoryName(assembly);
-                    string configurationFileName = "SilverlightUnitTestAdapter.config";
-                    string configurationFilePath = Path.Combine(assemblyPath, configurationFileName);
+                    if (assemblyPath == null)
+                    {
+                        throw new Exception($"Failed to get directory name for assembly location: {assembly}");
+                    }
+
+                    string configurationFilePath = Path.Combine(assemblyPath, SilverlightUnitTestAdapter.Constants.ConfigurationFileName);
                     if (File.Exists(configurationFilePath))
                     {
                         Settings settings = Settings.Load(configurationFilePath);
-
-                        argument.Append(" --QueryString=");
-                        argument.Append("\"");
-
-                        foreach (NameValuePair nameValuePair in settings.QueryString)
+                        if (settings.QueryString != null && settings.QueryString.Count > 0)
                         {
-                            argument.Append($"{nameValuePair.Name}={nameValuePair.Value}&");
-                        }
+                            argument.Append(" --QueryString=");
+                            argument.Append("\"");
 
-                        argument.Append("\"");
+                            int i = 0;
+                            foreach (KeyValuePair<string, string> keyValuePair in settings.QueryString)
+                            {
+                                argument.Append($"{keyValuePair.Key}={keyValuePair.Value}");
+
+                                if (i < settings.QueryString.Count - 1)
+                                {
+                                    argument.Append("&");
+                                }
+
+                                i++;
+                            }
+
+                            argument.Append("\"");
+                        }
                     }
 
                     TestCaseArgument argumentInfo = new TestCaseArgument(argument.ToString(), assembly, testMethodsInAssemblies[assembly]);
@@ -158,44 +141,45 @@ namespace SilverlightUnitTestAdapter.StatLight
             return arguments;
         }
 
-        internal Dictionary<string, List<TestCase>> GetTestMethodsByAssembly(IEnumerable<TestCase> testCases)
+        /// <summary>
+        /// Executes StatLight with the specified arguments.
+        /// </summary>
+        /// <param name="arguments">The arguments.</param>
+        internal void ExecuteStatLight(TestCaseArgument arguments)
         {
-            Dictionary<string, List<TestCase>> testMethodsInAssemblies = new Dictionary<string, List<TestCase>>();
-            foreach (TestCase testCase in testCases)
+            string executingAssemblyLocation = Assembly.GetExecutingAssembly().Location;
+            string currentAssemblyPath = Path.GetDirectoryName(executingAssemblyLocation);
+            if (currentAssemblyPath == null)
             {
-                if (!testMethodsInAssemblies.ContainsKey(testCase.Source))
-                {
-                    testMethodsInAssemblies.Add(testCase.Source, new List<TestCase>
-                    {
-                        testCase
-                    });
-                }
-                else
-                {
-                    testMethodsInAssemblies[testCase.Source].Add(testCase);
-                }
+                throw new Exception($"Failed to get directory name for executing assembly location: {executingAssemblyLocation}");
             }
 
-            return testMethodsInAssemblies;
-        }
-
-        internal bool IsStatLightInstalled()
-        {
-            bool flag;
-            string currentAssemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            if (new FileInfo(Path.Combine(currentAssemblyPath, "StatLight.exe")).Exists)
+            using (Process process = new Process())
             {
-                this.isInstalled = true;
-                flag = true;
-                return flag;
-            }
+                process.StartInfo.FileName = Path.Combine(currentAssemblyPath, "StatLight.exe");
+                process.StartInfo.Arguments = arguments.GetArguments();
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
+                this.shell.Trace($"\"{process.StartInfo.FileName}\" {process.StartInfo.Arguments}");
 
-            this.shell.Trace(string.Concat("ERROR: StatLight not found at expected location: ", currentAssemblyPath));
-            this.isInstalled = false;
-            flag = false;
-            return flag;
+                process.Start();
+
+                var reader = this.ConsumeReader(process.StandardOutput);
+                reader = this.ConsumeReader(process.StandardError);
+
+                process.WaitForExit();
+
+                this.shell.Trace(string.Concat(Localized.StatLightExitCodeMessage, process.ExitCode));
+            }
         }
 
+        /// <summary>
+        /// Processes the results.
+        /// </summary>
+        /// <param name="tests">The tests.</param>
+        /// <param name="argument">The argument.</param>
+        /// <param name="frameworkHandle">The framework handle.</param>
         internal void ProcessResults(IEnumerable<TestCase> tests, TestCaseArgument argument, IFrameworkHandle frameworkHandle)
         {
             TrxSchemaReader reader = new TrxSchemaReader(this.shell, tests);
@@ -204,32 +188,35 @@ namespace SilverlightUnitTestAdapter.StatLight
             {
                 foreach (TrxResult result in reader.ProcessStatLightResult(testRun))
                 {
-                    TestResult testResult = result.GetTestResult();
+                    TestResult testResult = result.GetTestResult(this.shell);
                     frameworkHandle.RecordResult(testResult);
                     frameworkHandle.RecordEnd(result.TestCase, testResult.Outcome);
                 }
             }
         }
 
-        internal void RecordStartTests(TestCaseArgument argument, IFrameworkHandle frameworkHandle)
+        /// <summary>
+        /// Runs the tests.
+        /// </summary>
+        /// <param name="testCases">The test cases.</param>
+        /// <param name="frameworkHandle">The framework handle.</param>
+        internal void RunTests(IEnumerable<TestCase> testCases, IFrameworkHandle frameworkHandle)
         {
-            foreach (TestCase testCase in argument.TestCases)
+            foreach (TestCaseArgument argument in GetArguments(testCases))
             {
-                frameworkHandle.RecordStart(testCase);
+                RecordStartTests(argument, frameworkHandle);
+                this.ExecuteStatLight(argument);
+                this.ProcessResults(argument.TestCases, argument, frameworkHandle);
             }
         }
 
-        internal void RunTests(IEnumerable<TestCase> testCases, IFrameworkHandle frameworkHandle)
+        private async Task ConsumeReader(TextReader reader)
         {
-            List<TestCaseArgument> arguments = new List<TestCaseArgument>();
-            if (this.IsStatLightInstalled())
+            string text;
+
+            while ((text = await reader.ReadLineAsync()) != null)
             {
-                foreach (TestCaseArgument argument in this.GetArguments(testCases))
-                {
-                    this.RecordStartTests(argument, frameworkHandle);
-                    this.ExecuteStatLight(argument);
-                    this.ProcessResults(argument.TestCases, argument, frameworkHandle);
-                }
+                this.shell.Trace(text);
             }
         }
     }
