@@ -13,13 +13,13 @@ namespace SilverlightUnitTestAdapter.Helpers
     /// <seealso cref="SilverlightUnitTestAdapter.Plugin.ILogger" />
     public class Logger : ILogger
     {
-        private readonly VsShell shell;
+        private readonly IVsShell shell;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Logger"/> class.
         /// </summary>
         /// <param name="shell">The shell.</param>
-        internal Logger(VsShell shell)
+        internal Logger(IVsShell shell)
         {
             this.shell = shell;
         }

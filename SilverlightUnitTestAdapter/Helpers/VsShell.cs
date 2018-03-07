@@ -16,7 +16,7 @@ namespace SilverlightUnitTestAdapter.Helpers
     /// <summary>
     /// Visual Studio Shell.
     /// </summary>
-    internal class VsShell
+    internal class VsShell : IVsShell
     {
         private readonly IMessageLogger logger;
 

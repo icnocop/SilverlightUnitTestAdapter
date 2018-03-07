@@ -20,13 +20,6 @@ namespace SilverlightUnitTestAdapter
     public class TestExecutor : ITestExecutor
     {
         /// <summary>
-        /// Cancels the test.
-        /// </summary>
-        public void Cancel()
-        {
-        }
-
-        /// <summary>
         /// Runs the tests.
         /// </summary>
         /// <param name="sources">The sources.</param>
@@ -101,6 +94,13 @@ namespace SilverlightUnitTestAdapter
                 // and turn off the IOleMessageFilter.
                 MessageFilter.Revoke();
             }
+        }
+
+        /// <summary>
+        /// Cancels the test.
+        /// </summary>
+        public void Cancel()
+        {
         }
     }
 }

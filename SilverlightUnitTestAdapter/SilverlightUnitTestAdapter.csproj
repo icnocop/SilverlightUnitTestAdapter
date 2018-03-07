@@ -65,8 +65,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\Settings.cs" />
+    <Compile Include="Helpers\IVsShell.cs" />
     <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Helpers\MessageFilter.cs" />
+    <Compile Include="Helpers\PluginHelper.cs" />
     <Compile Include="Helpers\ProcessExtensions.cs" />
     <Compile Include="Helpers\SerializationHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">

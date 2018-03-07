@@ -61,8 +61,6 @@ namespace SilverlightUnitTestAdapter.TrxSchema
         /// <returns>The test result.</returns>
         internal TestResult GetTestResult(VsShell shell)
         {
-            List<IPlugin> plugins = this.LoadPlugins(shell);
-
             TestResult result = new TestResult(this.TestCase)
             {
                 ComputerName = this.UnitTestResult.computerName,
@@ -114,104 +112,13 @@ namespace SilverlightUnitTestAdapter.TrxSchema
                 }
             }
 
-            Logger logger = new Logger(shell);
-
-            foreach (IPlugin plugin in plugins)
-            {
-                shell.Trace("Calling TransformTestResult...");
-
-                try
-                {
-                    plugin.TransformTestResult(logger, result);
-                }
-                catch (Exception ex)
-                {
-                    shell.Trace($"TranformTestResult threw an exception: {ex}");
-                }
-            }
+            PluginHelper pluginHelper = new PluginHelper(
+                shell,
+                this.TestCase.Source,
+                result);
+            pluginHelper.TransformTestResults();
 
             return result;
-        }
-
-        private List<IPlugin> LoadPlugins(VsShell shell)
-        {
-            // load plugins
-            string assemblyPath = Path.GetDirectoryName(this.TestCase.Source);
-            if (assemblyPath == null)
-            {
-                throw new Exception($"Failed to get directory name for assembly location: {this.TestCase.Source}");
-            }
-
-            List<IPlugin> plugins = new List<IPlugin>();
-            string configurationFilePath = Path.Combine(assemblyPath, SilverlightUnitTestAdapter.Constants.ConfigurationFileName);
-            if (!File.Exists(configurationFilePath))
-            {
-                shell.Trace($"Configuration file '{configurationFilePath}' not found.");
-                return plugins;
-            }
-
-            Settings settings = Settings.Load(configurationFilePath);
-
-            if (settings.Plugins == null)
-            {
-                shell.Trace($"No plugins defined in configuration file {configurationFilePath}.");
-                return plugins;
-            }
-
-            List<string> normalizedPluginFilePaths = new List<string>();
-            foreach (string plugin in settings.Plugins)
-            {
-                string normalizedPluginFilePath = plugin;
-
-                if (!Path.IsPathRooted(plugin))
-                {
-                    normalizedPluginFilePath = Path.Combine(assemblyPath, plugin);
-                }
-
-                string fullPath = Path.GetFullPath(normalizedPluginFilePath);
-                normalizedPluginFilePaths.Add(fullPath);
-            }
-
-            foreach (string plugin in normalizedPluginFilePaths)
-            {
-                if (!File.Exists(plugin))
-                {
-                    shell.Trace($"Plugin doesn't exist: {plugin}");
-                    continue;
-                }
-
-                shell.Trace($"Loading plugin: {plugin}");
-
-                Assembly pluginAssembly = Assembly.LoadFile(plugin);
-                Type[] types = pluginAssembly.GetExportedTypes();
-                foreach (var type in types)
-                {
-                    if (type.IsClass && (type.GetInterface(typeof(IPlugin).FullName) != null))
-                    {
-                        var ctor = type.GetConstructor(new Type[] { });
-                        if (ctor == null)
-                        {
-                            shell.Trace($"Type '{type.FullName}' in plugin '{plugin}' doesn't have a default constructor.");
-                            continue;
-                        }
-
-                        shell.Trace($"Creating new instance of plugin type: '{type.FullName}'");
-
-                        var pluginInstance = ctor.Invoke(new object[] { }) as IPlugin;
-                        if (pluginInstance == null)
-                        {
-                            shell.Trace($"Failed to create instance of type '{type.FullName}' in plugin '{plugin}'.");
-                            continue;
-                        }
-
-                        shell.Trace($"Loaded plugin type: '{type.FullName}'");
-
-                        plugins.Add(pluginInstance);
-                    }
-                }
-            }
-
-            return plugins;
         }
     }
 }

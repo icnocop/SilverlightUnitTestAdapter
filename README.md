@@ -12,7 +12,7 @@ Visual Studio 2015 Unit Test adapter for Silverlight 5
 
 The Visual Studio extension requires elevation during install and will be installed for all users in the a sub folder in Visual Studio's extension directory.
 
-For example, "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\{8.3}", where "{8.3}" is an arbitrary directory.
+For example, "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\\{8.3}", where "{8.3}" is an arbitrary directory.
 
 ## Configuration
 
