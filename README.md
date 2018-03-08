@@ -58,7 +58,6 @@ Paths can be specified relative to the test assembly.
 
 ```
 using SilverlightUnitTestAdapter.Plugin;
-using SilverlightUnitTestAdapter.VSTS;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 public class Plugin : IPlugin
@@ -97,12 +96,17 @@ public class Plugin : IPlugin
 ```
 5. Add the path to the plugin dll in `SilverlightUnitTestAdapter.json`.
 
+### Displaying exception stack traces with line numbers
+
+1. Catch the exception in the unit test and generate an exception report using [ProductionStackTrace](https://github.com/gimelfarb/ProductionStackTrace/pull/13).
+2. Re-throw a new exception that contains the exception report in the new exception's stacktrace.
+3. Create a plugin that uses [ProductionStackTrace](https://github.com/gimelfarb/ProductionStackTrace) to translate the stacktrace in the `ErrorStackTrace` property of the `TestResult` parameter.
+
 ## Limitations
 
 - Test methods can't run with elevated permissions
 - Test methods are not run as fully trust
 - Test methods are run as partially trusted
-- No line numbers for exception stack trace
 - No debugging support
 - No test cancellation support
 
