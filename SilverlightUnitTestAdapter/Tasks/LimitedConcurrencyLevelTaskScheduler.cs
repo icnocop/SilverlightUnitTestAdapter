@@ -93,11 +93,13 @@ namespace SilverlightUnitTestAdapter.Tasks
             lock (this.tasks)
             {
                 this.tasks.AddLast(task);
-                if (this.delegatesQueuedOrRunning < this.maxDegreeOfParallelism)
+                if (this.delegatesQueuedOrRunning >= this.maxDegreeOfParallelism)
                 {
-                    this.delegatesQueuedOrRunning++;
-                    this.NotifyThreadPoolOfPendingWork();
+                    return;
                 }
+
+                this.delegatesQueuedOrRunning++;
+                this.NotifyThreadPoolOfPendingWork();
             }
         }
 
@@ -148,12 +150,12 @@ namespace SilverlightUnitTestAdapter.Tasks
             ThreadPool.UnsafeQueueUserWorkItem(
                 _ =>
                 {
-                    Task item;
                     currentThreadIsProcessingItems = true;
                     try
                     {
                         while (true)
                         {
+                            Task item;
                             lock (this.tasks)
                             {
                                 if (this.tasks.Count != 0)

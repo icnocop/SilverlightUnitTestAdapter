@@ -7,9 +7,11 @@ namespace SilverlightUnitTestAdapter
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
+    using Assemblies;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
-    using SilverlightUnitTestAdapter.Helpers;
+    using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
     using SilverlightUnitTestAdapter.StatLight;
 
     /// <summary>
@@ -27,29 +29,17 @@ namespace SilverlightUnitTestAdapter
         /// <param name="frameworkHandle">The framework handle.</param>
         public void RunTests(IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
-            VsShell shell = new VsShell(frameworkHandle);
-
             try
             {
-                // Register the IOleMessageFilter to handle any threading errors.
-                MessageFilter.Register();
+                StatLightWrapper statLightWrapper = new StatLightWrapper(frameworkHandle, runContext.IsBeingDebugged);
 
-                shell.Initialize(true);
-
-                StatLightWrapper statLightWrapper = new StatLightWrapper(shell);
-
-                TaskExecution taskExecution = new TaskExecution(frameworkHandle, statLightWrapper, shell);
+                TaskExecution taskExecution = new TaskExecution(frameworkHandle, statLightWrapper);
                 taskExecution.StartTask(sources);
             }
             catch (Exception ex)
             {
-                shell.Trace(ex.ToString());
+                frameworkHandle.SendMessage(TestMessageLevel.Error, ex.ToString());
                 throw;
-            }
-            finally
-            {
-                // and turn off the IOleMessageFilter.
-                MessageFilter.Revoke();
             }
         }
 
@@ -61,38 +51,49 @@ namespace SilverlightUnitTestAdapter
         /// <param name="frameworkHandle">The framework handle.</param>
         public void RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
-            VsShell shell = new VsShell(frameworkHandle);
-
             try
             {
-                // Register the IOleMessageFilter to handle any threading errors.
-                MessageFilter.Register();
+                StringBuilder stringBuilder = new StringBuilder();
+                ConsoleWriter consoleWriter = new ConsoleWriter(
+                    value =>
+                    {
+                        if (value == '\0')
+                        {
+                            return;
+                        }
 
-                shell.Initialize(true);
+                        stringBuilder.Append(value);
 
-                shell.Trace("Start executing Silverlight tests. Based on the selected number of tests this might take some time...");
+                        string message = stringBuilder.ToString();
+                        if (!message.EndsWith(Environment.NewLine))
+                        {
+                            return;
+                        }
+
+                        frameworkHandle.SendMessage(TestMessageLevel.Informational, message);
+                        stringBuilder.Clear();
+                    });
+                Console.SetOut(consoleWriter);
+
+                frameworkHandle.SendMessage(TestMessageLevel.Informational, "Start executing Silverlight tests. Based on the selected number of tests this might take some time...");
 
                 IEnumerable<TestCase> testCases = tests.ToList();
-                shell.Trace(string.Concat(testCases.Count(), " will be executed."));
+                frameworkHandle.SendMessage(TestMessageLevel.Informational, string.Concat(testCases.Count(), " will be executed."));
 
-                StatLightWrapper statLightWrapper = new StatLightWrapper(shell);
+                StatLightWrapper statLightWrapper = new StatLightWrapper(frameworkHandle, runContext.IsBeingDebugged);
 
-                TaskExecution taskExecution = new TaskExecution(frameworkHandle, statLightWrapper, shell);
+                TaskExecution taskExecution = new TaskExecution(frameworkHandle, statLightWrapper);
                 taskExecution.StartTask(testCases);
 
+                consoleWriter.Flush();
+
                 int num = testCases.Count();
-                shell.Trace(string.Concat("----- Finished execution of ", num.ToString(), " tests. ----- "));
+                frameworkHandle.SendMessage(TestMessageLevel.Informational, string.Concat("----- Finished execution of ", num.ToString(), " tests. ----- "));
             }
             catch (Exception ex)
             {
-                shell.Trace($"Message: {ex.Message}");
-                shell.Trace(ex.ToString());
+                frameworkHandle.SendMessage(TestMessageLevel.Error, ex.ToString());
                 throw;
-            }
-            finally
-            {
-                // and turn off the IOleMessageFilter.
-                MessageFilter.Revoke();
             }
         }
 

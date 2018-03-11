@@ -6,15 +6,22 @@ namespace SilverlightUnitTestAdapter.StatLight
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Specialized;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Web;
     using Configuration;
+    using global::StatLight.Core;
+    using global::StatLight.Core.Common;
+    using global::StatLight.Core.Configuration;
+    using global::StatLight.Core.Reporting;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
-    using SilverlightUnitTestAdapter.Helpers;
+    using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
     using SilverlightUnitTestAdapter.TrxSchema;
     using VSTS;
 
@@ -23,15 +30,18 @@ namespace SilverlightUnitTestAdapter.StatLight
     /// </summary>
     internal class StatLightWrapper
     {
-        private readonly VsShell shell;
+        private readonly IMessageLogger logger;
+        private readonly bool isBeingDebugged;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StatLightWrapper"/> class.
+        /// Initializes a new instance of the <see cref="StatLightWrapper" /> class.
         /// </summary>
-        /// <param name="shell">The shell.</param>
-        public StatLightWrapper(VsShell shell)
+        /// <param name="logger">The logger.</param>
+        /// <param name="isBeingDebugged">if set to <c>true</c> is being debugged.</param>
+        public StatLightWrapper(IMessageLogger logger, bool isBeingDebugged)
         {
-            this.shell = shell;
+            this.logger = logger;
+            this.isBeingDebugged = isBeingDebugged;
         }
 
         /// <summary>
@@ -81,61 +91,44 @@ namespace SilverlightUnitTestAdapter.StatLight
         {
             List<TestCaseArgument> arguments = new List<TestCaseArgument>();
             Dictionary<string, List<TestCase>> testMethodsInAssemblies = GetTestMethodsByAssembly(testCases);
-            if (testMethodsInAssemblies != null && testMethodsInAssemblies.Count > 0)
+            if (testMethodsInAssemblies == null || testMethodsInAssemblies.Count <= 0)
             {
-                foreach (string assembly in testMethodsInAssemblies.Keys)
+                return arguments;
+            }
+
+            foreach (string assembly in testMethodsInAssemblies.Keys)
+            {
+                TestRunOptions testRunOptions = new TestRunOptions()
+                    .SetDllPath(assembly)
+                    .SetMethodsToTest(testMethodsInAssemblies[assembly].Select(m => m.FullyQualifiedName).ToList())
+                    .SetReportOutputFileType(ReportOutputFileType.TRX)
+                    .SetReportOutputPath(string.Concat(assembly, "_TestResult.xml"));
+
+                string assemblyPath = Path.GetDirectoryName(assembly);
+                if (assemblyPath == null)
                 {
-                    StringBuilder argument = new StringBuilder();
-                    argument.Append("-d=");
-                    argument.Append(string.Concat("\"", assembly, "\""));
-                    argument.Append(" --MethodsToTest=");
-                    argument.Append("\"");
-                    for (int i = 0; i < testMethodsInAssemblies[assembly].Count; i++)
-                    {
-                        argument.Append(testMethodsInAssemblies[assembly][i].FullyQualifiedName);
-                        if (i != testMethodsInAssemblies[assembly].Count - 1)
-                        {
-                            argument.Append(";");
-                        }
-                    }
-
-                    argument.Append("\"");
-
-                    string assemblyPath = Path.GetDirectoryName(assembly);
-                    if (assemblyPath == null)
-                    {
-                        throw new Exception($"Failed to get directory name for assembly location: {assembly}");
-                    }
-
-                    string configurationFilePath = Path.Combine(assemblyPath, SilverlightUnitTestAdapter.Constants.ConfigurationFileName);
-                    if (File.Exists(configurationFilePath))
-                    {
-                        Settings settings = Settings.Load(configurationFilePath);
-                        if (settings.QueryString != null && settings.QueryString.Count > 0)
-                        {
-                            argument.Append(" --QueryString=");
-                            argument.Append("\"");
-
-                            int i = 0;
-                            foreach (KeyValuePair<string, string> keyValuePair in settings.QueryString)
-                            {
-                                argument.Append($"{keyValuePair.Key}={keyValuePair.Value}");
-
-                                if (i < settings.QueryString.Count - 1)
-                                {
-                                    argument.Append("&");
-                                }
-
-                                i++;
-                            }
-
-                            argument.Append("\"");
-                        }
-                    }
-
-                    TestCaseArgument argumentInfo = new TestCaseArgument(argument.ToString(), assembly, testMethodsInAssemblies[assembly]);
-                    arguments.Add(argumentInfo);
+                    throw new Exception($"Failed to get directory name for assembly location: {assembly}");
                 }
+
+                string configurationFilePath = Path.Combine(assemblyPath, SilverlightUnitTestAdapter.Constants.ConfigurationFileName);
+                if (File.Exists(configurationFilePath))
+                {
+                    Settings settings = Settings.Load(configurationFilePath);
+                    if (settings.QueryString != null && settings.QueryString.Count > 0)
+                    {
+                        NameValueCollection nameValueCollection = HttpUtility.ParseQueryString(string.Empty);
+
+                        foreach (KeyValuePair<string, string> keyValuePair in settings.QueryString)
+                        {
+                            nameValueCollection.Add(keyValuePair.Key, keyValuePair.Value);
+                        }
+
+                        testRunOptions.SetQueryString(nameValueCollection.ToString());
+                    }
+                }
+
+                TestCaseArgument argumentInfo = new TestCaseArgument(testRunOptions, testMethodsInAssemblies[assembly]);
+                arguments.Add(argumentInfo);
             }
 
             return arguments;
@@ -154,23 +147,108 @@ namespace SilverlightUnitTestAdapter.StatLight
                 throw new Exception($"Failed to get directory name for executing assembly location: {executingAssemblyLocation}");
             }
 
-            using (Process process = new Process())
+            if (this.isBeingDebugged)
             {
-                process.StartInfo.FileName = Path.Combine(currentAssemblyPath, "StatLight.exe");
-                process.StartInfo.Arguments = arguments.GetArguments();
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                this.shell.Trace($"\"{process.StartInfo.FileName}\" {process.StartInfo.Arguments}");
+                TestRunOptions testRunOptions = arguments.TestRunOptions;
+                ILogger consoleLogger = new ConsoleLogger(LogChatterLevels.Full);
 
-                process.Start();
+                InputOptions inputOptions = new InputOptions()
+                    .SetDllPaths(new[] { testRunOptions.DllPath })
+                    .SetMethodsToTest(testRunOptions.MethodsToTest)
+                    .SetReportOutputFileType(testRunOptions.ReportOutputFileType)
+                    .SetReportOutputPath(testRunOptions.ReportOutputPath);
 
-                var reader = this.ConsumeReader(process.StandardOutput);
-                reader = this.ConsumeReader(process.StandardError);
+                if (!string.IsNullOrEmpty(testRunOptions.QueryString))
+                {
+                    inputOptions.SetQueryString(testRunOptions.QueryString);
+                }
 
-                process.WaitForExit();
+                RunnerExecutionEngine commandLineExecutionEngine = BootStrapper
+                    .Initialize(inputOptions, consoleLogger)
+                    .Resolve<RunnerExecutionEngine>();
 
-                this.shell.Trace(string.Concat(Localized.StatLightExitCodeMessage, process.ExitCode));
+                commandLineExecutionEngine.Run();
+            }
+            else
+            {
+                // run statlight on the command line so that messages sent to the Console within the unit test are written to the Test output window
+                string testAssembly = arguments.TestRunOptions.DllPath;
+
+                StringBuilder argument = new StringBuilder();
+                argument.Append("-d=");
+                argument.Append(string.Concat("\"", testAssembly, "\""));
+                argument.Append(" --MethodsToTest=");
+                argument.Append("\"");
+                for (int i = 0; i < arguments.TestRunOptions.MethodsToTest.Count; i++)
+                {
+                    argument.Append(arguments.TestRunOptions.MethodsToTest.ElementAt(i));
+                    if (i != arguments.TestRunOptions.MethodsToTest.Count - 1)
+                    {
+                        argument.Append(";");
+                    }
+                }
+
+                argument.Append("\"");
+
+                string assemblyPath = Path.GetDirectoryName(testAssembly);
+                if (assemblyPath == null)
+                {
+                    throw new Exception($"Failed to get directory name for assembly location: {testAssembly}");
+                }
+
+                string configurationFilePath = Path.Combine(assemblyPath, SilverlightUnitTestAdapter.Constants.ConfigurationFileName);
+                if (File.Exists(configurationFilePath))
+                {
+                    Settings settings = Settings.Load(configurationFilePath);
+                    if (settings.QueryString != null && settings.QueryString.Count > 0)
+                    {
+                        argument.Append(" --QueryString=");
+                        argument.Append("\"");
+
+                        int i = 0;
+                        foreach (KeyValuePair<string, string> keyValuePair in settings.QueryString)
+                        {
+                            argument.Append($"{keyValuePair.Key}={keyValuePair.Value}");
+
+                            if (i < settings.QueryString.Count - 1)
+                            {
+                                argument.Append("&");
+                            }
+
+                            i++;
+                        }
+
+                        argument.Append("\"");
+                    }
+                }
+
+                argument.Append(" -r=");
+                argument.Append(string.Concat("\"", arguments.TestRunOptions.ReportOutputPath));
+                argument.Append("\"");
+                argument.Append(" --ReportOutputFileType:");
+                argument.Append("\"TRX");
+                argument.Append("\"");
+
+                using (Process process = new Process())
+                {
+                    process.StartInfo.FileName = Path.Combine(currentAssemblyPath, "StatLight.exe");
+                    process.StartInfo.Arguments = argument.ToString();
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardError = true;
+                    this.logger.SendMessage(TestMessageLevel.Informational, $"\"{process.StartInfo.FileName}\" {process.StartInfo.Arguments}");
+
+                    process.Start();
+
+                    var outputReader = this.ConsumeReader(process.StandardOutput);
+                    var errorReader = this.ConsumeReader(process.StandardError);
+
+                    process.WaitForExit();
+                    outputReader.Wait();
+                    errorReader.Wait();
+
+                    this.logger.SendMessage(TestMessageLevel.Informational, string.Concat(Localized.StatLightExitCodeMessage, process.ExitCode));
+                }
             }
         }
 
@@ -182,16 +260,18 @@ namespace SilverlightUnitTestAdapter.StatLight
         /// <param name="frameworkHandle">The framework handle.</param>
         internal void ProcessResults(IEnumerable<TestCase> tests, TestCaseArgument argument, IFrameworkHandle frameworkHandle)
         {
-            TrxSchemaReader reader = new TrxSchemaReader(this.shell, tests);
-            TestRunType testRun = reader.Read(argument.TestResultPath);
-            if (testRun != null)
+            TrxSchemaReader reader = new TrxSchemaReader(this.logger, tests);
+            TestRunType testRun = reader.Read(argument.TestRunOptions.ReportOutputPath);
+            if (testRun == null)
             {
-                foreach (TrxResult result in reader.ProcessStatLightResult(testRun))
-                {
-                    TestResult testResult = result.GetTestResult(this.shell);
-                    frameworkHandle.RecordResult(testResult);
-                    frameworkHandle.RecordEnd(result.TestCase, testResult.Outcome);
-                }
+                return;
+            }
+
+            foreach (TrxResult result in reader.ProcessStatLightResult(testRun))
+            {
+                TestResult testResult = result.GetTestResult(this.logger);
+                frameworkHandle.RecordResult(testResult);
+                frameworkHandle.RecordEnd(result.TestCase, testResult.Outcome);
             }
         }
 
@@ -216,7 +296,10 @@ namespace SilverlightUnitTestAdapter.StatLight
 
             while ((text = await reader.ReadLineAsync()) != null)
             {
-                this.shell.Trace(text);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    this.logger.SendMessage(TestMessageLevel.Informational, text);
+                }
             }
         }
     }

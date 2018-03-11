@@ -104,13 +104,15 @@ namespace SilverlightUnitTestAdapter
         /// <param name="project">The project.</param>
         internal void ReadProjectInfo(Project project)
         {
-            if (project != null)
+            if (project == null)
             {
-                string fullPath = GetProjectFullPath(project);
-                string outputDir = Path.Combine(fullPath, GetProjectOutputPath(project));
-                string outputFileName = GetProjectOutputFileName(project);
-                this.CreateTestContainer(Path.Combine(outputDir, outputFileName));
+                return;
             }
+
+            string fullPath = GetProjectFullPath(project);
+            string outputDir = Path.Combine(fullPath, GetProjectOutputPath(project));
+            string outputFileName = GetProjectOutputFileName(project);
+            this.CreateTestContainer(Path.Combine(outputDir, outputFileName));
         }
 
         private void BuildEvents_OnBuildDone(vsBuildScope scope, vsBuildAction action)

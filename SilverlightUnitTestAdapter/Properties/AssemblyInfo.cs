@@ -16,3 +16,6 @@ using System.Runtime.InteropServices;
 [assembly: Debuggable(DebuggableAttribute.DebuggingModes.Default | DebuggableAttribute.DebuggingModes.DisableOptimizations | DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints | DebuggableAttribute.DebuggingModes.EnableEditAndContinue)]
 [assembly: Guid("7dd98032-c373-41b3-a527-5964028d8670")]
 [assembly: RuntimeCompatibility(WrapNonExceptionThrows = true)]
+
+[assembly: InternalsVisibleTo("SilverlightUnitTestAdapterTest")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

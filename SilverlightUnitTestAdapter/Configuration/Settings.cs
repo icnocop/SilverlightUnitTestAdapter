@@ -20,7 +20,7 @@ namespace SilverlightUnitTestAdapter.Configuration
         /// </summary>
         /// <value>The query string.</value>
         [DataMember(EmitDefaultValue = false)]
-        public IDictionary<string, string> QueryString { get; set; }
+        public Dictionary<string, string> QueryString { get; set; }
 
         /// <summary>
         /// Gets or sets the plugins.

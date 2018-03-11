@@ -10,7 +10,6 @@ namespace SilverlightUnitTestAdapter
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
     using SilverlightUnitTestAdapter.Assemblies;
-    using SilverlightUnitTestAdapter.Helpers;
 
     /// <summary>
     /// Test Discoverer.
@@ -39,35 +38,28 @@ namespace SilverlightUnitTestAdapter
                 throw new ArgumentNullException(nameof(discoverySink));
             }
 
-            VsShell shell = new VsShell(logger);
-
             try
             {
-                // Register the IOleMessageFilter to handle any threading errors.
-                MessageFilter.Register();
-
-                shell.Initialize(true);
-
                 foreach (string source in sources)
                 {
                     List<DiscoveryInfo> discoveryResult;
 
-                    using (AssemblyLoader loader = new AssemblyLoader())
+                    using (AssemblyLoader loader = new AssemblyLoader(logger))
                     {
                         try
                         {
                             loader.Initialize(source);
-                            shell.Trace(string.Concat(Localized.LoadingAndAnalyzingAssembly, source));
+                            logger.SendMessage(TestMessageLevel.Informational, string.Concat(Localized.LoadingAndAnalyzingAssembly, source));
                             discoveryResult = loader.Load(source);
                         }
                         catch (Exception ex)
                         {
-                            shell.Trace(ex.ToString());
+                            logger.SendMessage(TestMessageLevel.Error, ex.ToString());
                             continue;
                         }
                     }
 
-                    shell.Trace(string.Concat(Localized.ProcessingAssembly, discoveryResult.Count));
+                    logger.SendMessage(TestMessageLevel.Informational, string.Concat(Localized.ProcessingAssembly, discoveryResult.Count));
                     foreach (DiscoveryInfo discoveryResultItem in discoveryResult)
                     {
                         TestCase testCase = new TestCase(
@@ -75,7 +67,7 @@ namespace SilverlightUnitTestAdapter
                             new Uri(Constants.ExecutorUri),
                             source)
                         {
-                            DisplayName = discoveryResultItem.GetFullMethodPath(),
+                            DisplayName = discoveryResultItem.MethodName,
                             CodeFilePath = discoveryResultItem.ClassFilePath,
                             LineNumber = discoveryResultItem.LineOfCode
                         };
@@ -85,13 +77,8 @@ namespace SilverlightUnitTestAdapter
             }
             catch (Exception ex)
             {
-                shell.Trace($"Message: {ex.Message}");
-                shell.Trace(ex.ToString());
-            }
-            finally
-            {
-                // and turn off the IOleMessageFilter.
-                MessageFilter.Revoke();
+                logger.SendMessage(TestMessageLevel.Error, $"Message: {ex.Message}");
+                logger.SendMessage(TestMessageLevel.Error, ex.ToString());
             }
         }
     }

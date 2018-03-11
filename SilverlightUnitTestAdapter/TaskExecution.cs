@@ -9,8 +9,8 @@ namespace SilverlightUnitTestAdapter
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+    using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
     using SilverlightUnitTestAdapter.Assemblies;
-    using SilverlightUnitTestAdapter.Helpers;
     using SilverlightUnitTestAdapter.StatLight;
     using SilverlightUnitTestAdapter.Tasks;
 
@@ -23,8 +23,6 @@ namespace SilverlightUnitTestAdapter
 
         private readonly StatLightWrapper statLightWrapper;
 
-        private readonly VsShell shell;
-
         private int testsCompleted;
 
         private int testsFailed;
@@ -32,15 +30,13 @@ namespace SilverlightUnitTestAdapter
         private int testCancelled;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TaskExecution"/> class.
+        /// Initializes a new instance of the <see cref="TaskExecution" /> class.
         /// </summary>
         /// <param name="frameworkHandle">The framework handle.</param>
         /// <param name="statLightWrapper">The stat light wrapper.</param>
-        /// <param name="shell">The shell.</param>
-        public TaskExecution(IFrameworkHandle frameworkHandle, StatLightWrapper statLightWrapper, VsShell shell)
+        public TaskExecution(IFrameworkHandle frameworkHandle, StatLightWrapper statLightWrapper)
         {
             this.statLightWrapper = statLightWrapper;
-            this.shell = shell;
             this.FrameworkHandle = frameworkHandle;
 
             this.scheduler = new LimitedConcurrencyLevelTaskScheduler(-1);
@@ -74,9 +70,9 @@ namespace SilverlightUnitTestAdapter
                 testCases.Add(testCase);
             }
 
-            this.shell.Trace(string.Concat("Conversion successful ", source));
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, string.Concat("Conversion successful ", source));
             this.statLightWrapper.RunTests(testCases, this.FrameworkHandle);
-            this.shell.Trace(string.Concat("Running tests successful ", source));
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, string.Concat("Running tests successful ", source));
         }
 
         /// <summary>
@@ -128,13 +124,13 @@ namespace SilverlightUnitTestAdapter
         {
             List<DiscoveryInfo> discoveryResult;
 
-            using (AssemblyLoader loader = new AssemblyLoader())
+            using (AssemblyLoader loader = new AssemblyLoader(this.FrameworkHandle))
             {
                 loader.Initialize(source);
                 discoveryResult = loader.Load(source);
             }
 
-            this.shell.Trace(string.Concat("Tests in assembly successfully discovered: ", source));
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, string.Concat("Tests in assembly successfully discovered: ", source));
             return discoveryResult;
         }
 
@@ -153,12 +149,12 @@ namespace SilverlightUnitTestAdapter
                 Task<List<DiscoveryInfo>> task = this.CreateSourceBasedTask(source);
                 tasks.Add(task);
                 task.Start(this.scheduler);
-                this.shell.Trace(string.Concat("Starting new task for: ", source));
+                this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, string.Concat("Starting new task for: ", source));
             }
 
-            this.shell.Trace("Waiting for all tasks to complete.");
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, "Waiting for all tasks to complete.");
             Task.WaitAll(tasks.ToArray());
-            this.shell.Trace("All tasks finished");
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, "All tasks finished");
         }
 
         /// <summary>
@@ -168,11 +164,11 @@ namespace SilverlightUnitTestAdapter
         internal void StartTask(IEnumerable<TestCase> tests)
         {
             Task task = this.CreateTestBasedTask(tests);
-            this.shell.Trace("Start new task");
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, "Start new task");
             task.Start();
             task.Wait();
 
-            this.shell.Trace("Ended new task");
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, "Ended new task");
         }
 
         /// <summary>
@@ -182,9 +178,9 @@ namespace SilverlightUnitTestAdapter
         internal void TaskCancelled(string source)
         {
             this.testCancelled++;
-            this.shell.Trace(string.Concat("Task cancelled for: ", source));
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Error, string.Concat("Task cancelled for: ", source));
             string[] str = { "--- Completed:", this.testsCompleted.ToString(), ", Failed:", this.testsFailed.ToString(), ", Cancelled:", this.testCancelled.ToString(), " ---" };
-            this.shell.Trace(string.Concat(str));
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Error, string.Concat(str));
         }
 
         /// <summary>
@@ -192,7 +188,7 @@ namespace SilverlightUnitTestAdapter
         /// </summary>
         internal void TaskCancelled()
         {
-            this.shell.Trace("Task cancelled");
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Error, "Task cancelled");
         }
 
         /// <summary>
@@ -202,9 +198,9 @@ namespace SilverlightUnitTestAdapter
         internal void TaskCompleted(string source)
         {
             this.testsCompleted++;
-            this.shell.Trace(string.Concat("Task completed for: ", source));
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, string.Concat("Task completed for: ", source));
             string[] str = { "--- Completed:", this.testsCompleted.ToString(), ", Failed:", this.testsFailed.ToString(), ", Cancelled:", this.testCancelled.ToString(), " ---" };
-            this.shell.Trace(string.Concat(str));
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, string.Concat(str));
         }
 
         /// <summary>
@@ -212,7 +208,7 @@ namespace SilverlightUnitTestAdapter
         /// </summary>
         internal void TaskCompleted()
         {
-            this.shell.Trace("Task completed");
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, "Task completed");
         }
 
         /// <summary>
@@ -222,9 +218,9 @@ namespace SilverlightUnitTestAdapter
         internal void TaskFailed(string source)
         {
             this.testsFailed++;
-            this.shell.Trace(string.Concat("Task failed for: ", source));
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Error, string.Concat("Task failed for: ", source));
             string[] str = { "--- Completed:", this.testsCompleted.ToString(), ", Failed:", this.testsFailed.ToString(), ", Cancelled:", this.testCancelled.ToString(), " ---" };
-            this.shell.Trace(string.Concat(str));
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Error, string.Concat(str));
         }
 
         /// <summary>
@@ -232,7 +228,7 @@ namespace SilverlightUnitTestAdapter
         /// </summary>
         internal void TaskFailed()
         {
-            this.shell.Trace("Task failed");
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Error, "Task failed");
         }
     }
 }

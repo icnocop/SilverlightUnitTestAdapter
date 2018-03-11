@@ -55,19 +55,24 @@
     <Reference Include="Microsoft.VisualStudio.TestWindow.Interfaces">
       <HintPath>..\..\..\..\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestWindow.Interfaces.dll</HintPath>
     </Reference>
+    <Reference Include="StatLight.Core">
+      <HintPath>..\packages\StatLight.1.6.4375\tools\StatLight.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Management" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\AppDomainHelper.cs" />
+    <Compile Include="Assemblies\ConsoleWriter.cs" />
+    <Compile Include="Assemblies\CrossDomainTraceHelper.cs" />
+    <Compile Include="Assemblies\DelegateTraceListener.cs" />
     <Compile Include="Configuration\Settings.cs" />
-    <Compile Include="Helpers\IVsShell.cs" />
-    <Compile Include="Helpers\Logger.cs" />
-    <Compile Include="Helpers\MessageFilter.cs" />
     <Compile Include="Helpers\PluginHelper.cs" />
     <Compile Include="Helpers\ProcessExtensions.cs" />
     <Compile Include="Helpers\SerializationHelper.cs" />
@@ -75,8 +80,6 @@
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Helpers\NativeMethods.cs" />
-    <Compile Include="Helpers\RetryHelper.cs" />
     <Compile Include="Assemblies\AssemblyLoader.cs">
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>
@@ -107,10 +110,9 @@
       <DesignTimeSharedInput>true</DesignTimeSharedInput>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Helpers\VsShell.cs">
-      <AutoGen>false</AutoGen>
-      <DesignTimeSharedInput>false</DesignTimeSharedInput>
-    </Compile>
+    <Compile Include="StatLight\TextWriterLogger.cs" />
+    <Compile Include="StatLight\ConsoleLogger.cs" />
+    <Compile Include="StatLight\TestRunOptions.cs" />
     <Compile Include="Tasks\LimitedConcurrencyLevelTaskScheduler.cs">
       <AutoGen>false</AutoGen>
       <DesignTimeSharedInput>false</DesignTimeSharedInput>

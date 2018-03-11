@@ -4,25 +4,24 @@
 
 namespace SilverlightUnitTestAdapter.StatLight
 {
+    using System;
     using System.Collections.Generic;
-    using System.Text;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
     /// <summary>
     /// Test Case Argument.
     /// </summary>
+    [Serializable]
     internal class TestCaseArgument
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TestCaseArgument"/> class.
+        /// Initializes a new instance of the <see cref="TestCaseArgument" /> class.
         /// </summary>
-        /// <param name="arguments">The arguments.</param>
-        /// <param name="assemblyPath">The assembly path.</param>
+        /// <param name="testRunOptions">The test run options.</param>
         /// <param name="testCases">The test cases.</param>
-        public TestCaseArgument(string arguments, string assemblyPath, List<TestCase> testCases)
+        public TestCaseArgument(TestRunOptions testRunOptions, List<TestCase> testCases)
         {
-            this.Argument = arguments;
-            this.AssemblyPath = assemblyPath;
+            this.TestRunOptions = testRunOptions;
             this.TestCases = testCases;
         }
 
@@ -33,30 +32,9 @@ namespace SilverlightUnitTestAdapter.StatLight
         internal List<TestCase> TestCases { get; set; }
 
         /// <summary>
-        /// Gets the test result path.
+        /// Gets or sets the test run options.
         /// </summary>
-        /// <value>The test result path.</value>
-        internal string TestResultPath => string.Concat(this.AssemblyPath, "_TestResult.xml");
-
-        private string Argument { get; set; }
-
-        private string AssemblyPath { get; set; }
-
-        /// <summary>
-        /// Gets the arguments.
-        /// </summary>
-        /// <returns>System.String.</returns>
-        internal string GetArguments()
-        {
-            StringBuilder builder = new StringBuilder();
-            builder.Append(this.Argument);
-            builder.Append(" -r=");
-            builder.Append(string.Concat("\"", this.TestResultPath));
-            builder.Append("\"");
-            builder.Append(" --ReportOutputFileType:");
-            builder.Append("\"TRX");
-            builder.Append("\"");
-            return builder.ToString();
-        }
+        /// <value>The test run options.</value>
+        internal TestRunOptions TestRunOptions { get; set; }
     }
 }

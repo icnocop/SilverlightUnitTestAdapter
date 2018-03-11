@@ -2,6 +2,34 @@ version: 1.0.{build}
 skip_tags: true
 configuration: Release
 platform: Any CPU
+init:
+- ps: >-
+    # Microsoft Silverlight 5 Toolkit (December 2011)
+
+    $msiFilePath = "$($env:USERPROFILE)\Silverlight_5_Toolkit_December_2011.1.msi"
+
+    $logFilePath = "$($env:TEMP)\Silverlight_5_Toolkit_December_2011.1.txt"
+
+    $webclient = New-Object System.Net.WebClient
+
+    $webclient.DownloadFile('https://github.com/MicrosoftArchive/SilverlightToolkit/releases/download/5/Silverlight_5_Toolkit_December_2011.1.msi', $msiFilePath)
+
+    $process = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $msiFilePath /quiet /l*v $logFilePath" -Wait -Passthru)
+
+    $exitCode = $process.ExitCode
+
+    if ($exitCode -ne 0)
+
+    {
+      Get-Content $logFilePath
+      throw "Command failed with exit code $exitCode."
+    }
+
+    del $msiFilePath
+
+    del $logFilePath
+
+    Write-Host "Microsoft Silverlight 5 Toolkit (December 2011) successfully installed" -ForegroundColor Green
 assembly_info:
   patch: true
   file: '**\AssemblyInfo.*'

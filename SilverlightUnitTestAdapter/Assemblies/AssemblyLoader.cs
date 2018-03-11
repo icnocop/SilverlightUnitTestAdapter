@@ -6,9 +6,11 @@ namespace SilverlightUnitTestAdapter.Assemblies
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
-    using System.Reflection;
-    using System.Security.Policy;
+    using Helpers;
+    using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
+    using StatLight;
 
     /// <summary>
     /// Assembly Loader.
@@ -16,19 +18,28 @@ namespace SilverlightUnitTestAdapter.Assemblies
     /// <seealso cref="System.IDisposable" />
     internal class AssemblyLoader : IDisposable
     {
-        private AppDomain appDomain;
+        private readonly TextWriterLogger textWriter;
+
+        private readonly DelegateTraceListener delegateTraceListener;
+
+        private AppDomainHelper appDomainHelper;
 
         private ProxyLoader proxyDomain;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AssemblyLoader"/> class.
+        /// Initializes a new instance of the <see cref="AssemblyLoader" /> class.
         /// </summary>
-        public AssemblyLoader()
+        /// <param name="logger">The logger.</param>
+        public AssemblyLoader(IMessageLogger logger)
         {
-            this.appDomain = this.CreateChildDomain();
-            this.proxyDomain = this.appDomain.CreateInstanceAndUnwrap(
-                Assembly.GetAssembly(typeof(ProxyLoader)).FullName,
-                typeof(ProxyLoader).ToString()) as ProxyLoader;
+            this.textWriter = new TextWriterLogger(logger);
+
+            this.appDomainHelper = new AppDomainHelper();
+
+            this.delegateTraceListener = new DelegateTraceListener(
+                    message => logger.SendMessage(TestMessageLevel.Informational, message));
+
+            this.proxyDomain = this.appDomainHelper.CreateInstance<ProxyLoader>();
         }
 
         /// <summary>
@@ -38,6 +49,10 @@ namespace SilverlightUnitTestAdapter.Assemblies
         public void Initialize(string source)
         {
             this.proxyDomain.Initialize(source);
+
+            Trace.Listeners.Add(this.delegateTraceListener);
+
+            CrossDomainTraceHelper.StartListening(this.appDomainHelper.AppDomain, this.textWriter);
         }
 
         /// <summary>
@@ -45,15 +60,30 @@ namespace SilverlightUnitTestAdapter.Assemblies
         /// </summary>
         public void Dispose()
         {
+            if (this.textWriter != null)
+            {
+                this.textWriter.Flush();
+                this.textWriter.Dispose();
+            }
+
             if (this.proxyDomain != null)
             {
                 this.proxyDomain.Dispose();
                 this.proxyDomain = null;
             }
 
-            if (this.appDomain != null)
+            if (this.delegateTraceListener != null)
             {
-                AppDomain.Unload(this.appDomain);
+                if (Trace.Listeners.Contains(this.delegateTraceListener))
+                {
+                    Trace.Listeners.Remove(this.delegateTraceListener);
+                }
+            }
+
+            if (this.appDomainHelper != null)
+            {
+                this.appDomainHelper.Dispose();
+                this.appDomainHelper = null;
             }
         }
 
@@ -72,19 +102,6 @@ namespace SilverlightUnitTestAdapter.Assemblies
             }
 
             return discoveryInfos;
-        }
-
-        private AppDomain CreateChildDomain()
-        {
-            Evidence evidence = new Evidence(AppDomain.CurrentDomain.Evidence);
-            AppDomainSetup setup = new AppDomainSetup
-            {
-                ApplicationBase = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
-            };
-
-            this.appDomain = AppDomain.CreateDomain("SomeAppDomain", evidence, setup);
-
-            return this.appDomain;
         }
     }
 }

@@ -18,12 +18,6 @@ namespace SilverlightUnitTestAdapter
     /// <seealso cref="Microsoft.VisualStudio.TestWindow.Extensibility.ITestContainer" />
     public class TestContainer : ITestContainer
     {
-        private readonly ITestContainerDiscoverer discoverer;
-
-        private readonly string source;
-
-        private readonly IEnumerable<Guid> debugEngines;
-
         private DateTime lastKnownChange;
 
         /// <summary>
@@ -34,13 +28,15 @@ namespace SilverlightUnitTestAdapter
         public TestContainer(ITestContainerDiscoverer discoverer, string source)
             : this(discoverer, source, Enumerable.Empty<Guid>())
         {
-            if (!string.IsNullOrWhiteSpace(source))
+            if (string.IsNullOrWhiteSpace(source))
             {
-                this.discoverer = discoverer;
-                this.source = source;
-                this.debugEngines = new List<Guid>();
-                this.lastKnownChange = this.GetTimeStamp();
+                return;
             }
+
+            this.Discoverer = discoverer;
+            this.Source = source;
+            this.DebugEngines = new List<Guid>();
+            this.lastKnownChange = this.GetTimeStamp();
         }
 
         /// <summary>
@@ -51,25 +47,27 @@ namespace SilverlightUnitTestAdapter
         /// <param name="debugEngines">The debug engines.</param>
         public TestContainer(ITestContainerDiscoverer discoverer, string source, IEnumerable<Guid> debugEngines)
         {
-            if (!string.IsNullOrWhiteSpace(source))
+            if (string.IsNullOrWhiteSpace(source))
             {
-                this.discoverer = discoverer;
-                this.source = source;
-                this.debugEngines = debugEngines;
+                return;
             }
+
+            this.Discoverer = discoverer;
+            this.Source = source;
+            this.DebugEngines = debugEngines;
         }
 
         /// <summary>
         /// Gets the debug engines.
         /// </summary>
         /// <value>The debug engines.</value>
-        public IEnumerable<Guid> DebugEngines => this.debugEngines;
+        public IEnumerable<Guid> DebugEngines { get; }
 
         /// <summary>
         /// Gets the discoverer.
         /// </summary>
         /// <value>The discoverer.</value>
-        public ITestContainerDiscoverer Discoverer => this.discoverer;
+        public ITestContainerDiscoverer Discoverer { get; }
 
         /// <summary>
         /// Gets a value indicating whether this instance is application container test container.
@@ -81,7 +79,7 @@ namespace SilverlightUnitTestAdapter
         /// Gets the source.
         /// </summary>
         /// <value>The source.</value>
-        public string Source => this.source;
+        public string Source { get; }
 
         /// <summary>
         /// Gets the target framework.
@@ -102,9 +100,8 @@ namespace SilverlightUnitTestAdapter
         /// <returns>System.Int32.</returns>
         public int CompareTo(ITestContainer other)
         {
-            int num;
             TestContainer testContainer = other as TestContainer;
-            num = testContainer != null ? this.lastKnownChange.CompareTo(testContainer.lastKnownChange) : -1;
+            var num = testContainer != null ? this.lastKnownChange.CompareTo(testContainer.lastKnownChange) : -1;
             return num;
         }
 
@@ -137,8 +134,7 @@ namespace SilverlightUnitTestAdapter
 
         private DateTime GetTimeStamp()
         {
-            DateTime dateTime;
-            dateTime = (string.IsNullOrEmpty(this.Source) ? true : !File.Exists(this.Source)) ? DateTime.MinValue : File.GetLastWriteTime(this.Source);
+            var dateTime = string.IsNullOrEmpty(this.Source) || !File.Exists(this.Source) ? DateTime.MinValue : File.GetLastWriteTime(this.Source);
             return dateTime;
         }
     }

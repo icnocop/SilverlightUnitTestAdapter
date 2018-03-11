@@ -5,6 +5,7 @@
 namespace SilverlightUnitTestAdapter.Plugin
 {
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
+    using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 
     /// <summary>
     /// Plugin.
@@ -16,6 +17,6 @@ namespace SilverlightUnitTestAdapter.Plugin
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="testResult">The test result.</param>
-        void TransformTestResult(ILogger logger, TestResult testResult);
+        void TransformTestResult(IMessageLogger logger, TestResult testResult);
     }
 }

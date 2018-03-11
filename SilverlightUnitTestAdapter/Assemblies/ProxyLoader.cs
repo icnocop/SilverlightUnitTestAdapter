@@ -6,6 +6,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Reflection;
     using SilverlightUnitTestAdapter.Helpers;
@@ -17,9 +18,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
     /// <seealso cref="System.IDisposable" />
     internal class ProxyLoader : MarshalByRefObject, IDisposable
     {
-        private readonly AssemblyAnalyzer assemblyAnalyzer;
-
-        private readonly VsShell shell;
+        private AssemblyAnalyzer assemblyAnalyzer;
 
         private string sourcePath;
 
@@ -28,8 +27,6 @@ namespace SilverlightUnitTestAdapter.Assemblies
         /// </summary>
         public ProxyLoader()
         {
-            this.shell = new VsShell();
-            this.assemblyAnalyzer = new AssemblyAnalyzer(this.shell);
             AppDomain.CurrentDomain.AssemblyResolve += this.OnAssemblyResolve;
         }
 
@@ -40,7 +37,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
         public void Initialize(string source)
         {
             this.sourcePath = Path.GetDirectoryName(source);
-            this.shell.Initialize();
+            this.assemblyAnalyzer = new AssemblyAnalyzer();
         }
 
         /// <summary>
@@ -70,7 +67,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
             }
             catch (Exception ex)
             {
-                this.shell.Trace(ex.ToString());
+                Trace.WriteLine(ex.ToString());
             }
 
             return discoveryInfos;
@@ -78,7 +75,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
 
         private Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            this.shell.Trace(string.Concat("Resolving reference: ", args.Name));
+            Trace.WriteLine(string.Concat("Resolving reference: ", args.Name));
 
             AssemblyName assemblyName = new AssemblyName(args.Name);
             string fileName = $"{assemblyName.Name}.dll";
@@ -95,7 +92,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
             }
             catch (Exception ex)
             {
-                this.shell.Trace($"Failed to load file '{filePath}'.{Environment.NewLine}{ex}");
+                Trace.WriteLine($"Failed to load file '{filePath}'.{Environment.NewLine}{ex}");
             }
 
             return null;

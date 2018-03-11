@@ -10,7 +10,7 @@ namespace SilverlightUnitTestAdapter.TrxSchema
     using System.Linq;
     using System.Xml.Serialization;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-    using SilverlightUnitTestAdapter.Helpers;
+    using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
     using SilverlightUnitTestAdapter.VSTS;
 
     /// <summary>
@@ -18,16 +18,16 @@ namespace SilverlightUnitTestAdapter.TrxSchema
     /// </summary>
     internal class TrxSchemaReader
     {
-        private readonly VsShell shell;
+        private readonly IMessageLogger logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TrxSchemaReader"/> class.
+        /// Initializes a new instance of the <see cref="TrxSchemaReader" /> class.
         /// </summary>
-        /// <param name="shell">The shell.</param>
+        /// <param name="logger">The logger.</param>
         /// <param name="testCases">The test cases.</param>
-        public TrxSchemaReader(VsShell shell, IEnumerable<TestCase> testCases)
+        public TrxSchemaReader(IMessageLogger logger, IEnumerable<TestCase> testCases)
         {
-            this.shell = shell;
+            this.logger = logger;
             this.TestCases = testCases;
         }
 
@@ -44,20 +44,15 @@ namespace SilverlightUnitTestAdapter.TrxSchema
         /// <returns>The test definitions.</returns>
         internal static TestDefinitionType GetDefinitions(TestRunType testRun)
         {
-            if (testRun != null)
+            if (testRun == null)
             {
-                TestDefinitionType definition = (
-                    from e in testRun.Items
-                    where e is TestDefinitionType
-                    select e).First() as TestDefinitionType;
-                if (definition != null)
-                {
-                    var testDefinitionType = definition;
-                    return testDefinitionType;
-                }
+                return null;
             }
 
-            return null;
+            return (
+                from e in testRun.Items
+                where e is TestDefinitionType
+                select e).First() as TestDefinitionType;
         }
 
         /// <summary>
@@ -67,20 +62,15 @@ namespace SilverlightUnitTestAdapter.TrxSchema
         /// <returns>The test results.</returns>
         internal static ResultsType GetResults(TestRunType testRun)
         {
-            if (testRun != null)
+            if (testRun == null)
             {
-                ResultsType result = (
-                    from e in testRun.Items
-                    where e is ResultsType
-                    select e).First() as ResultsType;
-                if (result != null)
-                {
-                    var resultsType = result;
-                    return resultsType;
-                }
+                return null;
             }
 
-            return null;
+            return (
+                from e in testRun.Items
+                where e is ResultsType
+                select e).First() as ResultsType;
         }
 
         /// <summary>
@@ -93,25 +83,29 @@ namespace SilverlightUnitTestAdapter.TrxSchema
             IEnumerable<TrxResult> trxResults = new List<TrxResult>();
             TestDefinitionType definition = GetDefinitions(testRun);
             ResultsType results = GetResults(testRun);
-            if (definition != null && results != null)
+            if (definition == null || results == null)
             {
-                if (definition.Items != null && results.Items != null)
-                {
-                    IEnumerable<UnitTestType> unitTestDefinitions = definition.Items.OfType<UnitTestType>();
-                    IEnumerable<UnitTestResultType> items = results.Items.OfType<UnitTestResultType>();
-                    trxResults =
-                        from e in unitTestDefinitions
-                        from f in items
-                        from g in this.TestCases
-                        where e.id == f.testId && g.FullyQualifiedName == string.Concat(e.TestMethod.className, ".", e.TestMethod.name)
-                        select new TrxResult
-                        {
-                            UnitTest = e,
-                            UnitTestResult = f,
-                            TestCase = g
-                        };
-                }
+                return trxResults;
             }
+
+            if (definition.Items == null || results.Items == null)
+            {
+                return trxResults;
+            }
+
+            IEnumerable<UnitTestType> unitTestDefinitions = definition.Items.OfType<UnitTestType>();
+            IEnumerable<UnitTestResultType> items = results.Items.OfType<UnitTestResultType>();
+            trxResults =
+                from e in unitTestDefinitions
+                from f in items
+                from g in this.TestCases
+                where e.id == f.testId && g.FullyQualifiedName == string.Concat(e.TestMethod.className, ".", e.TestMethod.name)
+                select new TrxResult
+                {
+                    UnitTest = e,
+                    UnitTestResult = f,
+                    TestCase = g
+                };
 
             return trxResults;
         }
@@ -142,8 +136,8 @@ namespace SilverlightUnitTestAdapter.TrxSchema
                 }
                 catch (Exception exception)
                 {
-                    this.shell.Trace(string.Concat(Localized.ErrorOnDeserializeTrxFile, trxFilePath));
-                    this.shell.Trace(exception.ToString());
+                    this.logger.SendMessage(TestMessageLevel.Error, string.Concat(Localized.ErrorOnDeserializeTrxFile, trxFilePath));
+                    this.logger.SendMessage(TestMessageLevel.Error, exception.ToString());
                     testRunType = testRun;
                     return testRunType;
                 }

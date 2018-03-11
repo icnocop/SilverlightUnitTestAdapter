@@ -8,11 +8,57 @@ Visual Studio 2015 Unit Test adapter for Silverlight 5
 
 ![Screenshot](Installer/Screenshot.png)
 
+## Requirements
+
+Visual Studio 2015
+
 ## Installation
 
-The Visual Studio extension requires elevation during install and will be installed for all users in the a sub folder in Visual Studio's extension directory.
+The Visual Studio extension requires elevation during install and will be installed for all users in a subfolder in Visual Studio's extension directory.
 
 For example, "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\\{8.3}", where "{8.3}" is an arbitrary directory.
+
+## Creating a Silverlight unit test project
+
+1. Download and install [Silverlight 5 Toolkit (December 2011)](https://github.com/MicrosoftArchive/SilverlightToolkit/releases/download/5/Silverlight_5_Toolkit_December_2011.1.msi).  
+
+2. Create a new `Silverlight Class Library` project in Visual Studio.
+
+3. Add a project reference to `Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll` from the Silverlight Toolkit installation directory.
+
+   For example, `C:\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Toolkit\dec11\Testing\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll`.
+
+4. Create a new class for the unit test:
+```
+using System;
+using System.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace SilverlightUnitTest
+{
+    [TestClass]
+    public class UnitTest1
+    {
+        [TestMethod]
+        public void TestMethod1()
+        {
+            this.Log("Hello from Silverlight!");
+            
+            Assert.IsTrue(true, "Testing is fun!");
+        }
+
+        private void Log(string message)
+        {
+            // write message to the Debug window when run with the debugger
+            Debug.WriteLine(message);
+
+            // write message to the Tests output window when run without the debugger
+            Console.WriteLine(message);
+        }
+    }
+}
+```
+5. `Build` the project and notice the new test method appear in the `Test Explorer` window in Visual Studio.
 
 ## Configuration
 
@@ -59,11 +105,15 @@ Paths can be specified relative to the test assembly.
 ```
 using SilverlightUnitTestAdapter.Plugin;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 
 public class Plugin : IPlugin
 {
-    public void TransformTestResult(ILogger logger, TestResult testResult)
+    public void TransformTestResult(IMessageLogger logger, TestResult testResult)
     {
+        // write messages to Visual Studio's Test Output window
+        logger.SendMessage(TestMessageLevel.Informational, "Transforming test result...");
+
         // get test assembly file path
         string testAssemblyFilePath = testResult.TestCase.Source;
 
@@ -96,23 +146,32 @@ public class Plugin : IPlugin
 ```
 5. Add the path to the plugin dll in `SilverlightUnitTestAdapter.json`.
 
-### Displaying exception stack traces with line numbers
+### Displaying exception stack trace with line numbers
 
-1. Catch the exception in the unit test and generate an exception report using [ProductionStackTrace](https://github.com/gimelfarb/ProductionStackTrace/pull/13).
+1. Catch the exception in the unit test and generate an exception report using [Production Stack Trace PR#13](https://github.com/gimelfarb/ProductionStackTrace/pull/13).
 2. Re-throw a new exception that contains the exception report in the new exception's stacktrace.
-3. Create a plugin that uses [ProductionStackTrace](https://github.com/gimelfarb/ProductionStackTrace) to translate the stacktrace in the `ErrorStackTrace` property of the `TestResult` parameter.
+3. Create a plugin that uses [Production Stack Trace](https://github.com/gimelfarb/ProductionStackTrace) to translate the stacktrace in the `ErrorStackTrace` property of the `TestResult` parameter.
 
 ## Limitations
 
-- Test methods can't run with elevated permissions
-- Test methods are not run as fully trust
-- Test methods are run as partially trusted
-- No debugging support
-- No test cancellation support
+- Run with elevated permissions
+- Run as a trusted application
+- Parallel test execution
+- Cancellation
 
 ## Troubleshooting
 
 Detailed messages are written in the Output window's "Silverlight Unit Test Adapter" pane.
+
+## Resources
+
+[Silverlight Documentation and Downloads](https://msdn.microsoft.com/en-us/library/cc838158(v=vs.95).aspx)
+
+[Silverlight Toolkit GitHub repository](https://github.com/MicrosoftArchive/SilverlightToolkit)
+
+[Silverlight Discussion Forums](http://forums.silverlight.net/forums/35.aspx)
+
+[Silverlight Toolkit CodePlex Archive](https://archive.codeplex.com/?p=silverlight)
 
 ## Credits
 
@@ -120,6 +179,10 @@ Detailed messages are written in the Output window's "Silverlight Unit Test Adap
 
 [Jason Jarrett](https://github.com/staxmanade) and contributors for [Silverlight Testing Automation Tool (StatLight)](https://github.com/staxmanade/StatLight)
 
-[PSDgraphics](http://www.psdgraphics.com/) for blue box icon
+[Steven De Kock](https://twitter.com/sdekock) and [Matt Ellis](https://twitter.com/citizenmatt) for [AgUnit](https://github.com/sdekock/AgUnit)
+
+[Lev Gimelfarb](http://www.lionhack.com/) for [Production Stack Trace](https://github.com/gimelfarb/ProductionStackTrace)
+
+[PSD Graphics](http://www.psdgraphics.com/) for blue box icon
 
 The Visual Studio logo is a trademark of Microsoft Corporation.

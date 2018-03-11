@@ -5,14 +5,10 @@
 namespace SilverlightUnitTestAdapter.TrxSchema
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Reflection;
     using System.Xml;
-    using Configuration;
     using Helpers;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-    using SilverlightUnitTestAdapter.Plugin;
+    using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
     using VSTS;
 
     /// <summary>
@@ -46,20 +42,15 @@ namespace SilverlightUnitTestAdapter.TrxSchema
         internal static Microsoft.VisualStudio.TestPlatform.ObjectModel.TestOutcome ConvertTestOutcome(string testOutcomeString)
         {
             Microsoft.VisualStudio.TestPlatform.ObjectModel.TestOutcome testOutcome;
-            if (!Enum.TryParse(testOutcomeString, out testOutcome))
-            {
-                return 0;
-            }
-
-            return testOutcome;
+            return !Enum.TryParse(testOutcomeString, out testOutcome) ? 0 : testOutcome;
         }
 
         /// <summary>
         /// Gets the test result.
         /// </summary>
-        /// <param name="shell">The shell.</param>
+        /// <param name="logger">The logger.</param>
         /// <returns>The test result.</returns>
-        internal TestResult GetTestResult(VsShell shell)
+        internal TestResult GetTestResult(IMessageLogger logger)
         {
             TestResult result = new TestResult(this.TestCase)
             {
@@ -93,27 +84,29 @@ namespace SilverlightUnitTestAdapter.TrxSchema
                 foreach (object item in items)
                 {
                     OutputType output = item as OutputType;
-                    if (output?.ErrorInfo != null)
+                    if (output?.ErrorInfo == null)
                     {
-                        OutputTypeErrorInfo errorInfo = output.ErrorInfo;
+                        continue;
+                    }
 
-                        XmlNode[] messageNode = errorInfo.Message as XmlNode[];
-                        if (messageNode != null)
-                        {
-                            result.ErrorMessage = messageNode[0].InnerText;
-                        }
+                    OutputTypeErrorInfo errorInfo = output.ErrorInfo;
 
-                        XmlNode[] stackTraceNode = errorInfo.StackTrace as XmlNode[];
-                        if (stackTraceNode != null)
-                        {
-                            result.ErrorStackTrace = stackTraceNode[0].InnerText;
-                        }
+                    XmlNode[] messageNode = errorInfo.Message as XmlNode[];
+                    if (messageNode != null)
+                    {
+                        result.ErrorMessage = messageNode[0].InnerText;
+                    }
+
+                    XmlNode[] stackTraceNode = errorInfo.StackTrace as XmlNode[];
+                    if (stackTraceNode != null)
+                    {
+                        result.ErrorStackTrace = stackTraceNode[0].InnerText;
                     }
                 }
             }
 
             PluginHelper pluginHelper = new PluginHelper(
-                shell,
+                logger,
                 this.TestCase.Source,
                 result);
             pluginHelper.TransformTestResults();

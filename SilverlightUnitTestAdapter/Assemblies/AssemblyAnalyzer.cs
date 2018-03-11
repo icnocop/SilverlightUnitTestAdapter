@@ -6,12 +6,12 @@ namespace SilverlightUnitTestAdapter.Assemblies
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
     using Microsoft.Silverlight.Testing;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-    using SilverlightUnitTestAdapter.Helpers;
 
     /// <summary>
     /// Assembly Analyzer.
@@ -22,20 +22,9 @@ namespace SilverlightUnitTestAdapter.Assemblies
         private const string SilverlightTestAssemblyName = "Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35";
         private static readonly string SilverlightTestClassAttributeName = $"Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute, {SilverlightTestAssemblyName}";
 
-        private readonly VsShell shell;
-
         private string pathUnderInvestigation;
 
         private DiaSession diaSession;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AssemblyAnalyzer"/> class.
-        /// </summary>
-        /// <param name="shell">The shell.</param>
-        public AssemblyAnalyzer(VsShell shell)
-        {
-            this.shell = shell;
-        }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -91,18 +80,15 @@ namespace SilverlightUnitTestAdapter.Assemblies
         internal static bool IsTestMethod(MethodInfo method)
         {
             List<Attribute> testMethodAttributes = method.GetCustomAttributes().ToList();
-            if (testMethodAttributes.Any())
+            if (!testMethodAttributes.Any())
             {
-                if ((
-                    from e in testMethodAttributes
-                    where e.GetType().AssemblyQualifiedName == "Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute, Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
-                    select e).Any())
-                {
-                    return true;
-                }
+                return false;
             }
 
-            return false;
+            return (
+                from e in testMethodAttributes
+                where e.GetType().AssemblyQualifiedName == "Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute, Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
+                select e).Any();
         }
 
         /// <summary>
@@ -119,7 +105,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
                 return discoveredItems;
             }
 
-            this.shell.Trace($"Analyzing assembly: {path}");
+            Trace.WriteLine($"Analyzing assembly: {path}");
 
             if (IsAssemblyReferencingTestAssemblies(assembly))
             {
@@ -127,7 +113,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
                 this.pathUnderInvestigation = path;
                 if (assembly != null)
                 {
-                    this.shell.Trace($"Analyzing test assembly: {path}");
+                    Trace.WriteLine($"Analyzing test assembly: {path}");
 
                     Type[] types;
 
@@ -146,7 +132,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
                             }
                         }
 
-                        this.shell.Trace(ex + Environment.NewLine + message);
+                        Trace.WriteLine(ex + Environment.NewLine + message);
 
                         // continue to the next assembly
                         return discoveredItems;
@@ -163,7 +149,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
             }
 
             int num = discoveredItems.Count;
-            this.shell.Trace(string.Concat("----- Finished assembly analyzing. ", num.ToString(), " tests found. -----"));
+            Trace.WriteLine(string.Concat("----- Finished assembly analyzing. ", num.ToString(), " tests found. -----"));
             return discoveredItems;
         }
 
@@ -274,7 +260,7 @@ namespace SilverlightUnitTestAdapter.Assemblies
                 .Any(x => string.Equals(x.FullName, SilverlightTestAssemblyName, StringComparison.CurrentCultureIgnoreCase));
         }
 
-        private static bool IsTestClass(Type type)
+        private static bool IsTestClass(MemberInfo type)
         {
             return type.GetCustomAttributes()
                 .Any(x => string.Equals(x.GetType().AssemblyQualifiedName, SilverlightTestClassAttributeName, StringComparison.CurrentCultureIgnoreCase));

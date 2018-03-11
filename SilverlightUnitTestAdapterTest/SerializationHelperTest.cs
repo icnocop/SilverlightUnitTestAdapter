@@ -21,13 +21,15 @@ namespace SilverlightUnitTestAdapterTest
         [TestMethod]
         public void ToJson_WithQueryString_Succeeds()
         {
-            string json = SerializationHelper.ToJson(new Settings
+            Settings settings = new Settings
             {
                 QueryString = new Dictionary<string, string>
                 {
                     { "test", "value" }
                 }
-            });
+            };
+
+            string json = SerializationHelper.ToJson(settings);
 
             Assert.AreEqual("{\"QueryString\":{\"test\":\"value\"}}", json);
         }
@@ -42,7 +44,6 @@ namespace SilverlightUnitTestAdapterTest
             Settings settings = SerializationHelper.FromJson<Settings>(json);
 
             Assert.AreEqual(1, settings.QueryString.Count);
-            Assert.IsTrue(settings.QueryString.ContainsKey("test"));
             Assert.AreEqual("value", settings.QueryString["test"]);
             Assert.IsNull(settings.Plugins);
         }

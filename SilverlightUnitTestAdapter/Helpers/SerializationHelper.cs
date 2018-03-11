@@ -15,7 +15,7 @@ namespace SilverlightUnitTestAdapter.Helpers
     {
         private static readonly DataContractJsonSerializerSettings Settings = new DataContractJsonSerializerSettings
         {
-            UseSimpleDictionaryFormat = true,
+            UseSimpleDictionaryFormat = true
         };
 
         /// <summary>
