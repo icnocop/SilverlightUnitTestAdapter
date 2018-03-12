@@ -7,6 +7,9 @@ namespace SilverlightUnitTestAdapter.Configuration
     using System.Collections.Generic;
     using System.IO;
     using System.Runtime.Serialization;
+    using global::StatLight.Core.Configuration;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
     using SilverlightUnitTestAdapter.Helpers;
 
     /// <summary>
@@ -30,6 +33,14 @@ namespace SilverlightUnitTestAdapter.Configuration
         public ICollection<string> Plugins { get; set; }
 
         /// <summary>
+        /// Gets or sets the unit test provider.
+        /// </summary>
+        /// <value>The unit test provider.</value>
+        [DataMember(EmitDefaultValue = false)]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public UnitTestProviderType UnitTestProvider { get; set; }
+
+        /// <summary>
         /// Loads the settings from the specified configuration file path.
         /// </summary>
         /// <param name="configurationFilePath">The configuration file path.</param>
@@ -39,8 +50,8 @@ namespace SilverlightUnitTestAdapter.Configuration
         /// </value>
         public static Settings Load(string configurationFilePath)
         {
-            string configuration = File.ReadAllText(configurationFilePath);
-            return SerializationHelper.FromJson<Settings>(configuration);
+            string jsonConfiguration = File.ReadAllText(configurationFilePath);
+            return JsonConvert.DeserializeObject<Settings>(jsonConfiguration);
         }
     }
 }

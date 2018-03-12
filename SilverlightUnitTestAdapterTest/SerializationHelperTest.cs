@@ -6,8 +6,9 @@ namespace SilverlightUnitTestAdapterTest
 {
     using System.Collections.Generic;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Newtonsoft.Json;
     using SilverlightUnitTestAdapter.Configuration;
-    using SilverlightUnitTestAdapter.Helpers;
+    using StatLight.Core.Configuration;
 
     /// <summary>
     /// Serialization Helper Test.
@@ -16,7 +17,7 @@ namespace SilverlightUnitTestAdapterTest
     public class SerializationHelperTest
     {
         /// <summary>
-        /// Converts the settings to json.
+        /// Converts the settings containing a query string to JSON.
         /// </summary>
         [TestMethod]
         public void ToJson_WithQueryString_Succeeds()
@@ -29,23 +30,63 @@ namespace SilverlightUnitTestAdapterTest
                 }
             };
 
-            string json = SerializationHelper.ToJson(settings);
+            string json = JsonConvert.SerializeObject(settings);
 
             Assert.AreEqual("{\"QueryString\":{\"test\":\"value\"}}", json);
         }
 
         /// <summary>
-        /// Converts the json to settings.
+        /// Converts the JSON string containing a query string to an instance of settings.
         /// </summary>
         [TestMethod]
         public void FromJson_WithQueryString_Succeeds()
         {
             string json = "{\"QueryString\":{\"test\":\"value\"}}";
-            Settings settings = SerializationHelper.FromJson<Settings>(json);
+            Settings settings = JsonConvert.DeserializeObject<Settings>(json);
 
             Assert.AreEqual(1, settings.QueryString.Count);
             Assert.AreEqual("value", settings.QueryString["test"]);
             Assert.IsNull(settings.Plugins);
+        }
+
+        /// <summary>
+        /// Converts the settings containing a unit test provider to JSON.
+        /// </summary>
+        [TestMethod]
+        public void ToJson_WithUnitTestProvider_Succeeds()
+        {
+            Settings settings = new Settings
+            {
+                UnitTestProvider = UnitTestProviderType.MSTestWithCustomProvider
+            };
+
+            string json = JsonConvert.SerializeObject(settings);
+
+            Assert.AreEqual("{\"UnitTestProvider\":\"MSTestWithCustomProvider\"}", json);
+        }
+
+        /// <summary>
+        /// Converts the JSON string containing a unit test provider to an instance of settings.
+        /// </summary>
+        [TestMethod]
+        public void FromJson_WithUnitTestProvider_Succeeds()
+        {
+            string json = "{\"UnitTestProvider\": \"MSTestWithCustomProvider\"}";
+            Settings settings = JsonConvert.DeserializeObject<Settings>(json);
+
+            Assert.AreEqual(UnitTestProviderType.MSTestWithCustomProvider, settings.UnitTestProvider);
+        }
+
+        /// <summary>
+        /// Asserts that converting a JSON string of settings without a unit test provider is converted with an undefined unit test provider.
+        /// </summary>
+        [TestMethod]
+        public void FromJson_WithoutUnitTestProvider_IsMsTestByDefault()
+        {
+            string json = "{}";
+            Settings settings = JsonConvert.DeserializeObject<Settings>(json);
+
+            Assert.AreEqual(UnitTestProviderType.Undefined, settings.UnitTestProvider);
         }
     }
 }

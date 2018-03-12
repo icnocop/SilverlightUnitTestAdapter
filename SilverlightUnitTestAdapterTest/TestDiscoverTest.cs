@@ -4,8 +4,10 @@
 
 namespace SilverlightUnitTestAdapterTest
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
@@ -68,7 +70,21 @@ namespace SilverlightUnitTestAdapterTest
                 consoleMessageLogger,
                 mockTestCaseDiscoverySink.Object);
 
-            Assert.AreEqual(1, discoveredTestCases.Count);
+            List<string> expectedTestCaseDisplayNames = new List<string>
+            {
+                "SilverlightUnitTest.AsyncTest.EnqueueTestComplete_ShouldPass",
+                "SilverlightUnitTest.AsyncTest.Assert_Fail_ShouldFail",
+                "SilverlightUnitTest.AsyncTest.ReturnTask_ShouldPass",
+                "SilverlightUnitTest.AsyncTest.ReturnTask_WithAssertFail_ShouldFail",
+                "SilverlightUnitTest.AsyncTest.AwaitTask_ShouldPass",
+                "SilverlightUnitTest.AsyncTest.AwaitTask_WithAssertFail_ShouldFail",
+                "SilverlightUnitTest.UnitTest1.TestMethod1"
+            };
+
+            List<string> discoveredTestCaseNames = discoveredTestCases.Select(x => x.FullyQualifiedName).ToList();
+            string message = string.Join(Environment.NewLine, discoveredTestCaseNames);
+
+            CollectionAssert.AreEqual(expectedTestCaseDisplayNames, discoveredTestCaseNames, message);
         }
     }
 }

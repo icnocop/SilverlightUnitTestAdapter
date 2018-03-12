@@ -28,30 +28,30 @@ namespace SilverlightUnitTestAdapter.StatLight
         /// <summary>
         /// Gets the character encoding in which the output is written.
         /// </summary>
-        /// <value>The encoding.</value>
+        /// <value>The character encoding in which the output is written.</value>
         public override Encoding Encoding => Encoding.Default;
 
         /// <summary>
-        /// Writes the specified message.
+        /// Writes a string to the text string or stream.
         /// </summary>
-        /// <param name="message">The message.</param>
-        public override void Write(string message)
+        /// <param name="value">The string to write.</param>
+        public override void Write(string value)
         {
-            if (!string.IsNullOrEmpty(message))
+            if (!string.IsNullOrEmpty(value))
             {
-                this.logger.SendMessage(TestMessageLevel.Informational, message);
+                this.logger.SendMessage(TestMessageLevel.Informational, value);
             }
         }
 
         /// <summary>
-        /// Writes the specified message with a new line.
+        /// Writes a string followed by a line terminator to the text string or stream.
         /// </summary>
-        /// <param name="message">The message.</param>
-        public override void WriteLine(string message)
+        /// <param name="value">The string to write. If value is null, only the line terminator is written.</param>
+        public override void WriteLine(string value)
         {
-            if (!string.IsNullOrEmpty(message))
+            if (!string.IsNullOrEmpty(value))
             {
-                this.logger.SendMessage(TestMessageLevel.Informational, message);
+                this.logger.SendMessage(TestMessageLevel.Informational, value);
             }
         }
     }

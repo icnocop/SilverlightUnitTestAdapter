@@ -125,6 +125,11 @@ namespace SilverlightUnitTestAdapter.StatLight
 
                         testRunOptions.SetQueryString(nameValueCollection.ToString());
                     }
+
+                    if (settings.UnitTestProvider != UnitTestProviderType.Undefined)
+                    {
+                        testRunOptions.SetUnitTestProvider(settings.UnitTestProvider);
+                    }
                 }
 
                 TestCaseArgument argumentInfo = new TestCaseArgument(testRunOptions, testMethodsInAssemblies[assembly]);
@@ -161,6 +166,11 @@ namespace SilverlightUnitTestAdapter.StatLight
                 if (!string.IsNullOrEmpty(testRunOptions.QueryString))
                 {
                     inputOptions.SetQueryString(testRunOptions.QueryString);
+                }
+
+                if (testRunOptions.UnitTestProviderType != UnitTestProviderType.Undefined)
+                {
+                    inputOptions.SetUnitTestProviderType(testRunOptions.UnitTestProviderType);
                 }
 
                 RunnerExecutionEngine commandLineExecutionEngine = BootStrapper
@@ -219,6 +229,11 @@ namespace SilverlightUnitTestAdapter.StatLight
                         }
 
                         argument.Append("\"");
+                    }
+
+                    if (settings.UnitTestProvider != UnitTestProviderType.Undefined)
+                    {
+                        argument.Append($" --OverrideTestProvider:{settings.UnitTestProvider}");
                     }
                 }
 

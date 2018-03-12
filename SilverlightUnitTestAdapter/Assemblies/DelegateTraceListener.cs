@@ -54,5 +54,4 @@ namespace SilverlightUnitTestAdapter.Assemblies
             this.writeLine(message);
         }
     }
-
 }

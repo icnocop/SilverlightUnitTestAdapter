@@ -65,18 +65,40 @@ namespace SilverlightUnitTest
 The Silverlight unit test adapter reads configuration settings from `SilverlightUnitTestAdapter.json`.
 This file must be placed in the same path as the test assembly.
 
-### QueryString
+### Unit Test Provider
+
+By default the Silverlight unit test adapter will automatically detect the unit test provider to use.
+
+You may explicitly set the unit test provider type by specifying it in the `UnitTestProvider` property.
+
+| Value                    | Description |
+|--------------------------|-------------|
+| MSTest                   | [Microsoft's Silverlight Toolkit](https://github.com/MicrosoftArchive/SilverlightToolkit) |
+| XUnit                    | [XUnit](https://xunit.github.io/) |
+| XUnitLight               | [XUnitLight.Silverlight](https://github.com/staxmanade/StatLight/tree/master/src/TestingFrameworkAdapters/XunitLight.Silverlight) |
+| NUnit                    | [NUnit](http://nunit.org/) |
+| UnitDriven               | [UnitDriven](https://archive.codeplex.com/?p=unitdriven) |
+| MSTestWithCustomProvider | Automatically searches your test assemblies for an IUnitTestProvider. |
+
+###### Example
+```
+{
+  "UnitTestProvider": "MSTestWithCustomProvider"
+}
+```
+
+### Query String
 
 Name-value pairs specified in the `QueryString` property can be retrieved using the `HtmlPage.Document.QueryString` property in the test assembly.
 This allows you to pass arbitrary information to the assembly and methods under test.
 
+###### Example
 ```
 {
   "QueryString": {
     "name1": "value1",
     "name2": "value2"
   }
-  ...
 }
 ```
 
@@ -86,13 +108,13 @@ The Silverlight unit test adapter can be extended by using plugins.
 Plugins can be used to manipulate the test results as a way to work-around some of the limitations when running unit tests in Silverlight.
 Paths can be specified relative to the test assembly.
 
+###### Example
 ```
 {
   "Plugins": [
     "..\\..\\plugin1.dll",
     "..\\..\\plugin2.dll"
   ]
-  ...
 }
 ```
 

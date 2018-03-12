@@ -65,7 +65,7 @@ namespace SilverlightUnitTestAdapter
                         stringBuilder.Append(value);
 
                         string message = stringBuilder.ToString();
-                        if (!message.EndsWith(Environment.NewLine))
+                        if (string.IsNullOrEmpty(message) || (!message.EndsWith(Environment.NewLine)))
                         {
                             return;
                         }

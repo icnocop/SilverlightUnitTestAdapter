@@ -17,8 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightUnitTestAdapterTest", "SilverlightUnitTestAdapterTest\SilverlightUnitTestAdapterTest.csproj", "{76EA67C0-4EEE-499F-AF7B-5621B5F96147}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightUnitTestAdapter.Plugin", "SilverlightUnitTestAdapter.Plugin\SilverlightUnitTestAdapter.Plugin.csproj", "{0B1967B1-B5BB-48A0-BCC0-AA0ABFD6222A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightUnitTest", "SilverlightUnitTest\SilverlightUnitTest.csproj", "{7547D279-EFE0-40AC-A97F-D968046FF5A5}"
 EndProject
 Global
@@ -39,10 +37,6 @@ Global
 		{76EA67C0-4EEE-499F-AF7B-5621B5F96147}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76EA67C0-4EEE-499F-AF7B-5621B5F96147}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76EA67C0-4EEE-499F-AF7B-5621B5F96147}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0B1967B1-B5BB-48A0-BCC0-AA0ABFD6222A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B1967B1-B5BB-48A0-BCC0-AA0ABFD6222A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0B1967B1-B5BB-48A0-BCC0-AA0ABFD6222A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B1967B1-B5BB-48A0-BCC0-AA0ABFD6222A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7547D279-EFE0-40AC-A97F-D968046FF5A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7547D279-EFE0-40AC-A97F-D968046FF5A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7547D279-EFE0-40AC-A97F-D968046FF5A5}.Release|Any CPU.ActiveCfg = Release|Any CPU

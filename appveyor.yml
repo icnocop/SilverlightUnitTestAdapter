@@ -48,17 +48,6 @@ before_build:
 build:
   project: SilverlightUnitTestAdapter.sln
   verbosity: quiet
-after_build:
-- cmd: nuget pack .\SilverlightUnitTestAdapter.Plugin\SilverlightUnitTestAdapter.Plugin.nuspec -Prop version=%APPVEYOR_BUILD_VERSION% -Prop configuration=%CONFIGURATION%
 artifacts:
 - path: .\Installer\bin\**\*.vsix
   name: VSIX
-- path: SilverlightUnitTestAdapter.Plugin.*.nupkg
-  name: NuGet Package
-deploy:
-- provider: NuGet
-  api_key:
-    secure: 5S/6ubn56Tpm4OvzdTc3EpbJPQD9uTbgvIjZSHJsGt/e3k/RhNzVOzdV/SUr/9sO
-  artifact: NuGet Package
-  on:
-    branch: master

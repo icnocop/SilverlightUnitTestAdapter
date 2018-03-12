@@ -6,6 +6,7 @@ namespace SilverlightUnitTestAdapter.StatLight
 {
     using System;
     using System.Collections.Generic;
+    using global::StatLight.Core.Configuration;
     using global::StatLight.Core.Reporting;
 
     /// <summary>
@@ -45,10 +46,16 @@ namespace SilverlightUnitTestAdapter.StatLight
         public string QueryString { get; private set; }
 
         /// <summary>
+        /// Gets the unit test provider.
+        /// </summary>
+        /// <value>The unit test provider.</value>
+        public UnitTestProviderType UnitTestProviderType { get; private set; }
+
+        /// <summary>
         /// Sets the DLL path.
         /// </summary>
         /// <param name="assembly">The assembly.</param>
-        /// <returns>TestRunOptions.</returns>
+        /// <returns>The test run options.</returns>
         internal TestRunOptions SetDllPath(string assembly)
         {
             this.DllPath = assembly;
@@ -60,7 +67,7 @@ namespace SilverlightUnitTestAdapter.StatLight
         /// Sets the methods to test.
         /// </summary>
         /// <param name="list">The list.</param>
-        /// <returns>TestRunOptions.</returns>
+        /// <returns>The test run options.</returns>
         internal TestRunOptions SetMethodsToTest(List<string> list)
         {
             this.MethodsToTest = list;
@@ -71,7 +78,7 @@ namespace SilverlightUnitTestAdapter.StatLight
         /// Sets the type of the report output file.
         /// </summary>
         /// <param name="reportOutputFileType">Type of the report output file.</param>
-        /// <returns>TestRunOptions.</returns>
+        /// <returns>The test run options.</returns>
         internal TestRunOptions SetReportOutputFileType(ReportOutputFileType reportOutputFileType)
         {
             this.ReportOutputFileType = reportOutputFileType;
@@ -82,7 +89,7 @@ namespace SilverlightUnitTestAdapter.StatLight
         /// Sets the report output path.
         /// </summary>
         /// <param name="reportOutputPath">The report output path.</param>
-        /// <returns>TestRunOptions.</returns>
+        /// <returns>The test run options.</returns>
         internal TestRunOptions SetReportOutputPath(string reportOutputPath)
         {
             this.ReportOutputPath = reportOutputPath;
@@ -93,10 +100,21 @@ namespace SilverlightUnitTestAdapter.StatLight
         /// Sets the query string.
         /// </summary>
         /// <param name="queryString">The query string.</param>
-        /// <returns>TestRunOptions.</returns>
+        /// <returns>The test run options.</returns>
         internal TestRunOptions SetQueryString(string queryString)
         {
             this.QueryString = queryString;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the unit test provider type.
+        /// </summary>
+        /// <param name="unitTestProviderType">The unit test provider type.</param>
+        /// <returns>The test run options.</returns>
+        internal TestRunOptions SetUnitTestProvider(UnitTestProviderType unitTestProviderType)
+        {
+            this.UnitTestProviderType = unitTestProviderType;
             return this;
         }
     }
