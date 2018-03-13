@@ -70,7 +70,14 @@ namespace SilverlightUnitTestAdapter
                             return;
                         }
 
+                        if (message == Environment.NewLine)
+                        {
+                            stringBuilder.Clear();
+                            return;
+                        }
+
                         frameworkHandle.SendMessage(TestMessageLevel.Informational, message);
+
                         stringBuilder.Clear();
                     });
                 Console.SetOut(consoleWriter);
