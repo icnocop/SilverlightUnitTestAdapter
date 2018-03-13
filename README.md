@@ -121,7 +121,7 @@ Paths can be specified relative to the test assembly.
 #### Creating a plugin
 
 1. Create a new .NET 3.5+ Class Library project.
-2. Install the `SilverlightUnitTestAdapter.Plugin` NuGet package.
+2. Install the [SilverlightUnitTestAdapter.Plugin](https://www.nuget.org/packages/SilverlightUnitTestAdapter.Plugin/) NuGet package.
 3. Create the class that defines the plugin using the `IPlugin` interface.
 
 ```
@@ -166,24 +166,24 @@ public class Plugin : IPlugin
 }
 
 ```
-5. Add the path to the plugin dll in `SilverlightUnitTestAdapter.json`.
+4. Add the path to the plugin dll in `SilverlightUnitTestAdapter.json`.
 
 ### Displaying exception stack trace with line numbers
 
 1. Catch the exception in the unit test and generate an exception report using [Production Stack Trace PR#13](https://github.com/gimelfarb/ProductionStackTrace/pull/13).
-2. Re-throw a new exception that contains the exception report in the new exception's stacktrace.
-3. Create a plugin that uses [Production Stack Trace](https://github.com/gimelfarb/ProductionStackTrace) to translate the stacktrace in the `ErrorStackTrace` property of the `TestResult` parameter.
+2. Re-throw a new exception that contains the exception report in the new exception's `Message`.
+3. Create a plugin that uses [Production Stack Trace](https://github.com/gimelfarb/ProductionStackTrace) to convert the `ErrorMessage` property of the `TestResult` parameter and set the translated stack trace to the `ErrorStackTrace` property.
 
 ## Limitations
 
-- Run with elevated permissions
-- Run as a trusted application
-- Parallel test execution
-- Cancellation
+- Silverlight tests can't run with elevated permissions.
+- Silverlight tests can't run as a trusted application.
+- Silverlight tests can't run in parallel.
+- Silverlight tests can't be cancelled.
 
 ## Troubleshooting
 
-Detailed messages are written in the Output window's "Silverlight Unit Test Adapter" pane.
+Detailed messages are written in the Output window's "Test" pane.
 
 ## Resources
 
