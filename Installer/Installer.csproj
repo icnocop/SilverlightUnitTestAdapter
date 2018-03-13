@@ -44,6 +44,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\..\..\..\Program Files %28x86%29\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\msdia140typelib_clr0200.dll">
+      <Link>msdia140typelib_clr0200.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="..\packages\StatLight.1.6.4375\tools\StatLight.exe.config">
       <Link>StatLight.exe.config</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
