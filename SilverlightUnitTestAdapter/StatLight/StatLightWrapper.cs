@@ -98,11 +98,13 @@ namespace SilverlightUnitTestAdapter.StatLight
 
             foreach (string assembly in testMethodsInAssemblies.Keys)
             {
-                TestRunOptions testRunOptions = new TestRunOptions()
-                    .SetDllPath(assembly)
-                    .SetMethodsToTest(testMethodsInAssemblies[assembly].Select(m => m.FullyQualifiedName).ToList())
-                    .SetReportOutputFileType(ReportOutputFileType.TRX)
-                    .SetReportOutputPath(string.Concat(assembly, "_TestResult.xml"));
+                TestRunOptions testRunOptions = new TestRunOptions
+                {
+                    DllPath = assembly,
+                    MethodsToTest = testMethodsInAssemblies[assembly].Select(m => m.FullyQualifiedName).ToList(),
+                    ReportOutputFileType = ReportOutputFileType.TRX,
+                    ReportOutputPath = string.Concat(assembly, "_TestResult.xml")
+                };
 
                 string assemblyPath = Path.GetDirectoryName(assembly);
                 if (assemblyPath == null)
@@ -123,13 +125,15 @@ namespace SilverlightUnitTestAdapter.StatLight
                             nameValueCollection.Add(keyValuePair.Key, keyValuePair.Value);
                         }
 
-                        testRunOptions.SetQueryString(nameValueCollection.ToString());
+                        testRunOptions.QueryString = nameValueCollection.ToString();
                     }
 
                     if (settings.UnitTestProvider != UnitTestProviderType.Undefined)
                     {
-                        testRunOptions.SetUnitTestProvider(settings.UnitTestProvider);
+                        testRunOptions.UnitTestProviderType = settings.UnitTestProvider;
                     }
+
+                    testRunOptions.Debug = settings.Debug;
                 }
 
                 TestCaseArgument argumentInfo = new TestCaseArgument(testRunOptions, testMethodsInAssemblies[assembly]);
@@ -161,7 +165,8 @@ namespace SilverlightUnitTestAdapter.StatLight
                     .SetDllPaths(new[] { testRunOptions.DllPath })
                     .SetMethodsToTest(testRunOptions.MethodsToTest)
                     .SetReportOutputFileType(testRunOptions.ReportOutputFileType)
-                    .SetReportOutputPath(testRunOptions.ReportOutputPath);
+                    .SetReportOutputPath(testRunOptions.ReportOutputPath)
+                    .SetIsRequestingDebug(testRunOptions.Debug);
 
                 if (!string.IsNullOrEmpty(testRunOptions.QueryString))
                 {
@@ -215,18 +220,14 @@ namespace SilverlightUnitTestAdapter.StatLight
                         argument.Append(" --QueryString=");
                         argument.Append("\"");
 
-                        int i = 0;
+                        NameValueCollection queryString = HttpUtility.ParseQueryString(string.Empty);
+
                         foreach (KeyValuePair<string, string> keyValuePair in settings.QueryString)
                         {
-                            argument.Append($"{keyValuePair.Key}={keyValuePair.Value}");
-
-                            if (i < settings.QueryString.Count - 1)
-                            {
-                                argument.Append("&");
-                            }
-
-                            i++;
+                            queryString.Add(keyValuePair.Key, keyValuePair.Value);
                         }
+
+                        argument.Append(queryString.ToString());
 
                         argument.Append("\"");
                     }
@@ -234,6 +235,11 @@ namespace SilverlightUnitTestAdapter.StatLight
                     if (settings.UnitTestProvider != UnitTestProviderType.Undefined)
                     {
                         argument.Append($" --OverrideTestProvider:{settings.UnitTestProvider}");
+                    }
+
+                    if (settings.Debug)
+                    {
+                        argument.Append(" --debug");
                     }
                 }
 

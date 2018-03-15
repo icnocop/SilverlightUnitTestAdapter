@@ -81,12 +81,24 @@ namespace SilverlightUnitTestAdapterTest
         /// Asserts that converting a JSON string of settings without a unit test provider is converted with an undefined unit test provider.
         /// </summary>
         [TestMethod]
-        public void FromJson_WithoutUnitTestProvider_IsMsTestByDefault()
+        public void FromJson_WithoutUnitTestProvider_IsUndefinedByDefault()
         {
             string json = "{}";
             Settings settings = JsonConvert.DeserializeObject<Settings>(json);
 
             Assert.AreEqual(UnitTestProviderType.Undefined, settings.UnitTestProvider);
+        }
+
+        /// <summary>
+        /// Asserts that converting a JSON string of settings with the Debug property set to true is converted with the Debug property set to true.
+        /// </summary>
+        [TestMethod]
+        public void FromJson_WithDebug_DebugIsSet()
+        {
+            string json = "{ \"Debug\" : true }";
+            Settings settings = JsonConvert.DeserializeObject<Settings>(json);
+
+            Assert.AreEqual(true, settings.Debug);
         }
     }
 }

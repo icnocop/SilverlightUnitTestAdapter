@@ -65,6 +65,17 @@ namespace SilverlightUnitTest
 The Silverlight unit test adapter reads configuration settings from `SilverlightUnitTestAdapter.json`.
 This file must be placed in the same path as the test assembly.
 
+### Debug
+
+Enabling the `Debug` property outputs verbose information to the Output window's "Test" pane which can be used for troubleshooting.
+
+###### Example
+```
+{
+  "Debug": true
+}
+```
+
 ### Unit Test Provider
 
 By default the Silverlight unit test adapter will automatically detect the unit test provider to use.
@@ -184,6 +195,8 @@ public class Plugin : IPlugin
 ## Troubleshooting
 
 Detailed messages are written in the Output window's "Test" pane.
+
+Enable the `Debug` property in the configuration file to display more verbose information.
 
 ## Resources
 

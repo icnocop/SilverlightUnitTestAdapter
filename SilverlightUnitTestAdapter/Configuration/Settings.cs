@@ -10,7 +10,6 @@ namespace SilverlightUnitTestAdapter.Configuration
     using global::StatLight.Core.Configuration;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
-    using SilverlightUnitTestAdapter.Helpers;
 
     /// <summary>
     /// Settings.
@@ -39,6 +38,13 @@ namespace SilverlightUnitTestAdapter.Configuration
         [DataMember(EmitDefaultValue = false)]
         [JsonConverter(typeof(StringEnumConverter))]
         public UnitTestProviderType UnitTestProvider { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether to turn on debug tracing.
+        /// </summary>
+        /// <value><c>true</c> if debug tracing is turned on; otherwise, <c>false</c>.</value>
+        [DataMember(EmitDefaultValue = false)]
+        public bool Debug { get; set; }
 
         /// <summary>
         /// Loads the settings from the specified configuration file path.
