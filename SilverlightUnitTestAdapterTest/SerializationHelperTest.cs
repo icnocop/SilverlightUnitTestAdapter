@@ -100,5 +100,18 @@ namespace SilverlightUnitTestAdapterTest
 
             Assert.AreEqual(true, settings.Debug);
         }
+
+        /// <summary>
+        /// Asserts that converting a JSON string of settings with OverriddenSettings property configured is converted with the OverriddenSettings property set.
+        /// </summary>
+        [TestMethod]
+        public void FromJson_WithOverriddenSettings_OverriddenSettingsIsSet()
+        {
+            string json = "{ \"OverriddenSettings\" : {\"MaxWaitTimeAllowedBeforeCommunicationErrorSent\":\"00:00:20\"} }";
+            Settings settings = JsonConvert.DeserializeObject<Settings>(json);
+
+            Assert.IsTrue(settings.OverriddenSettings.ContainsKey("MaxWaitTimeAllowedBeforeCommunicationErrorSent"));
+            Assert.AreEqual("00:00:20", settings.OverriddenSettings["MaxWaitTimeAllowedBeforeCommunicationErrorSent"]);
+        }
     }
 }

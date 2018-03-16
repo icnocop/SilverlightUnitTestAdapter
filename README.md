@@ -67,7 +67,7 @@ This file must be placed in the same path as the test assembly.
 
 ### Debug
 
-Enabling the `Debug` property outputs verbose information to the Output window's "Test" pane which can be used for troubleshooting.
+Enabling StatLight's `Debug` property outputs verbose information to the Output window's "Test" pane which can be used for troubleshooting.
 
 ###### Example
 ```
@@ -76,11 +76,30 @@ Enabling the `Debug` property outputs verbose information to the Output window's
 }
 ```
 
+### Override StatLight settings
+
+Additional StatLight settings can be overriden using the `OverriddenSettings` property.
+
+| Key                                            | Default value | Description |
+|------------------------------------------------|---------------|-------------|
+| Windowless                                     | false         | Sets the [windowless](https://msdn.microsoft.com/es-es/library/cc838156(v=vs.95).aspx) property of the Silverlight application. |
+| MaxWaitTimeAllowedBeforeCommunicationErrorSent | 00:05:00      | The maximum amount of time of inactivity until the test times out. The default value is 5 minutes. This value is parsed as a [TimeSpan](https://msdn.microsoft.com/en-us/library/se73z7b9(v=vs.110).aspx#Anchor_2). |
+
+
+###### Example
+```
+{
+  "OverriddenSettings" : {
+    "MaxWaitTimeAllowedBeforeCommunicationErrorSent": "00:20:00"
+  }
+}
+```
+
 ### Unit Test Provider
 
-By default the Silverlight unit test adapter will automatically detect the unit test provider to use.
+StatLight will automatically detect the unit test provider to use by default.
 
-You may explicitly set the unit test provider type by specifying it in the `UnitTestProvider` property.
+The unit test provider type can be explicitly set by specifying it in the `UnitTestProvider` property.
 
 | Value                    | Description |
 |--------------------------|-------------|

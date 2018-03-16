@@ -40,11 +40,18 @@ namespace SilverlightUnitTestAdapter.Configuration
         public UnitTestProviderType UnitTestProvider { get; set; }
 
         /// <summary>
-        /// Gets a value indicating whether to turn on debug tracing.
+        /// Gets or sets a value indicating whether to turn on debug tracing.
         /// </summary>
         /// <value><c>true</c> if debug tracing is turned on; otherwise, <c>false</c>.</value>
         [DataMember(EmitDefaultValue = false)]
         public bool Debug { get; set; }
+
+        /// <summary>
+        /// Gets or sets the overridden settings.
+        /// </summary>
+        /// <value>The overridden settings.</value>
+        [DataMember(EmitDefaultValue = false)]
+        public Dictionary<string, string> OverriddenSettings { get; set; }
 
         /// <summary>
         /// Loads the settings from the specified configuration file path.

@@ -16,6 +16,14 @@ namespace SilverlightUnitTestAdapter.StatLight
     public class TestRunOptions
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="TestRunOptions"/> class.
+        /// </summary>
+        public TestRunOptions()
+        {
+            this.OverriddenSettings = new Dictionary<string, string>();
+        }
+
+        /// <summary>
         /// Gets or sets the DLL path.
         /// </summary>
         /// <value>The DLL path.</value>
@@ -56,5 +64,11 @@ namespace SilverlightUnitTestAdapter.StatLight
         /// </summary>
         /// <value><c>true</c> if debug; otherwise, <c>false</c>.</value>
         public bool Debug { get; set; }
+
+        /// <summary>
+        /// Gets or sets the overridden settings.
+        /// </summary>
+        /// <value>The overridden settings.</value>
+        public IDictionary<string, string> OverriddenSettings { get; set; }
     }
 }

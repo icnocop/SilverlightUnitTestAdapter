@@ -134,6 +134,11 @@ namespace SilverlightUnitTestAdapter.StatLight
                     }
 
                     testRunOptions.Debug = settings.Debug;
+
+                    if (settings.OverriddenSettings != null && settings.OverriddenSettings.Count > 0)
+                    {
+                        testRunOptions.OverriddenSettings = settings.OverriddenSettings;
+                    }
                 }
 
                 TestCaseArgument argumentInfo = new TestCaseArgument(testRunOptions, testMethodsInAssemblies[assembly]);
@@ -166,7 +171,8 @@ namespace SilverlightUnitTestAdapter.StatLight
                     .SetMethodsToTest(testRunOptions.MethodsToTest)
                     .SetReportOutputFileType(testRunOptions.ReportOutputFileType)
                     .SetReportOutputPath(testRunOptions.ReportOutputPath)
-                    .SetIsRequestingDebug(testRunOptions.Debug);
+                    .SetIsRequestingDebug(testRunOptions.Debug)
+                    .SetSettingsOverride(testRunOptions.OverriddenSettings);
 
                 if (!string.IsNullOrEmpty(testRunOptions.QueryString))
                 {
@@ -240,6 +246,14 @@ namespace SilverlightUnitTestAdapter.StatLight
                     if (settings.Debug)
                     {
                         argument.Append(" --debug");
+                    }
+
+                    if (settings.OverriddenSettings != null && settings.OverriddenSettings.Count > 0)
+                    {
+                        foreach (KeyValuePair<string, string> keyValuePair in settings.OverriddenSettings)
+                        {
+                            argument.Append($" --OverrideSetting:{keyValuePair.Key}={keyValuePair.Value}");
+                        }
                     }
                 }
 
