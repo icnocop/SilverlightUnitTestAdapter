@@ -1,11 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.421
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightUnitTestAdapter", "SilverlightUnitTestAdapter\SilverlightUnitTestAdapter.csproj", "{DEB72D7C-DC4D-4624-A3C2-3B61627DF2D9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Installer", "Installer\Installer.csproj", "{F5F1676F-E8BA-4621-BF93-E1B7BDDA4C16}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{12E765EA-4F94-44E0-ABC9-F7D10764F03A}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
@@ -15,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		Installer\Screenshot.png = Installer\Screenshot.png
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightUnitTestAdapter", "SilverlightUnitTestAdapter\SilverlightUnitTestAdapter.csproj", "{DEB72D7C-DC4D-4624-A3C2-3B61627DF2D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Installer", "Installer\Installer.csproj", "{F5F1676F-E8BA-4621-BF93-E1B7BDDA4C16}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightUnitTestAdapterTest", "SilverlightUnitTestAdapterTest\SilverlightUnitTestAdapterTest.csproj", "{76EA67C0-4EEE-499F-AF7B-5621B5F96147}"
 EndProject
@@ -45,5 +45,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {10D5680A-446C-407B-BF9C-36A431FF4397}
 	EndGlobalSection
 EndGlobal
