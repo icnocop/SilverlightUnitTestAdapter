@@ -21,6 +21,8 @@ namespace SilverlightUnitTestAdapter.Assemblies
         private AssemblyAnalyzer assemblyAnalyzer;
 
         private string sourcePath;
+        private HashSet<string> probingPaths;
+        private List<string> resolvingAssemblies = new List<string>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProxyLoader"/> class.
@@ -37,6 +39,28 @@ namespace SilverlightUnitTestAdapter.Assemblies
         public void Initialize(string source)
         {
             this.sourcePath = Path.GetDirectoryName(source);
+            this.probingPaths = new HashSet<string>
+            {
+                this.sourcePath,
+                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                FrameworkHelper.Silverlight5AssemblyPath
+            };
+
+            Assembly entryAssembly = Assembly.GetEntryAssembly();
+            if (entryAssembly != null)
+            {
+                this.probingPaths.Add(Path.GetDirectoryName(entryAssembly.Location));
+            }
+
+            Assembly callingAssembly = Assembly.GetCallingAssembly();
+            if (callingAssembly != null)
+            {
+                this.probingPaths.Add(Path.GetDirectoryName(callingAssembly.Location));
+            }
+
+            string applicationConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+            this.probingPaths.Add(Path.GetDirectoryName(applicationConfigurationFile));
+
             this.assemblyAnalyzer = new AssemblyAnalyzer();
         }
 
@@ -75,24 +99,36 @@ namespace SilverlightUnitTestAdapter.Assemblies
 
         private Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
         {
+            if (this.resolvingAssemblies.Contains(args.Name))
+            {
+                // do not recursively try to resolve the assembly
+                return null;
+            }
+
             Trace.WriteLine(string.Concat("Resolving reference: ", args.Name));
+
+            this.resolvingAssemblies.Add(args.Name);
 
             AssemblyName assemblyName = new AssemblyName(args.Name);
             string fileName = $"{assemblyName.Name}.dll";
 
-            string filePath = Path.Combine(this.sourcePath, fileName);
-            if (!File.Exists(filePath))
+            foreach (string probingPath in this.probingPaths)
             {
-                filePath = Path.Combine(FrameworkHelper.Silverlight5AssemblyPath, fileName);
-            }
+                string filePath = Path.Combine(probingPath, fileName);
 
-            try
-            {
-                return Assembly.LoadFile(filePath);
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"Failed to load file '{filePath}'.{Environment.NewLine}{ex}");
+                if (!File.Exists(filePath))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    return Assembly.LoadFile(filePath);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Failed to load file '{filePath}'.{Environment.NewLine}{ex}");
+                }
             }
 
             return null;

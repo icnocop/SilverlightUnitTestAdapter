@@ -1,16 +1,18 @@
 # <img src="Installer\bluebox.ico" height="32" width="32"> Silverlight Unit Test Adapter
 
-Visual Studio 2015 Unit Test adapter for Silverlight 5
+Visual Studio Unit Test adapter for Silverlight 5
 
 [![Build status](https://ci.appveyor.com/api/projects/status/iwnuyva3s95ax25q/branch/master)](https://ci.appveyor.com/project/icnocop/silverlightunittestadapter/branch/master)
 
 [Download this extension from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=RamiAbughazaleh.SilverlightUnitTestAdapter)
 
-![Screenshot](Installer/Screenshot.png)
+![Screenshot](Installer/Screenshot.png?raw=true)
 
-## Requirements
+## Supported Visual Studio Versions
 
 Visual Studio 2015
+Visual Studio 2017
+Visual Studio 2019
 
 ## Installation
 

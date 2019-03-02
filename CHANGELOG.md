@@ -1,5 +1,9 @@
 # Change Log
 
+__v1.0.48__ (2019-03-01)
+
+ - Added support for Visual Studio 2017 and Visual Studio 2019
+
 __v1.0.35__ (2018-03-15)
 
  - Added support for the `OverrideSettings` StatLight configuration setting.  
