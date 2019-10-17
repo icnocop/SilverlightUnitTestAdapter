@@ -55,6 +55,8 @@ namespace SilverlightUnitTestAdapter
         /// <param name="discoveryInfos">The discovery infos.</param>
         internal void ConvertAndRun(string source, List<DiscoveryInfo> discoveryInfos)
         {
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, $"Converting test cases in '{source}'...");
+
             List<TestCase> testCases = new List<TestCase>();
             foreach (DiscoveryInfo discoveryResultItem in discoveryInfos)
             {
@@ -122,6 +124,8 @@ namespace SilverlightUnitTestAdapter
         /// <returns>The discovery information.</returns>
         internal List<DiscoveryInfo> LoadAssemblies(string source)
         {
+            this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, $"Loading assembly '{source}'...");
+
             List<DiscoveryInfo> discoveryResult;
 
             using (AssemblyLoader loader = new AssemblyLoader(this.FrameworkHandle))
