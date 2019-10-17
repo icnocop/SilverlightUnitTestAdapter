@@ -48,6 +48,8 @@ before_build:
 build:
   project: SilverlightUnitTestAdapter.sln
   verbosity: quiet
+after_test:
+- ps: Vsix-PushArtifacts | Vsix-PublishToGallery
 artifacts:
 - path: .\Installer\bin\**\*.vsix
   name: VSIX
