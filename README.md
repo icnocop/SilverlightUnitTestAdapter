@@ -2,9 +2,10 @@
 
 Visual Studio Unit Test adapter for Silverlight 5
 
-[![Build status](https://ci.appveyor.com/api/projects/status/iwnuyva3s95ax25q/branch/master)](https://ci.appveyor.com/project/icnocop/silverlightunittestadapter/branch/master)
-
-[Download this extension from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=RamiAbughazaleh.SilverlightUnitTestAdapter)
+[![AppVeyor](https://img.shields.io/appveyor/ci/icnocop/silverlightunittestadapter)](https://ci.appveyor.com/project/icnocop/silverlightunittestadapter/branch/master)
+[![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/RamiAbughazaleh.SilverlightUnitTestAdapter)](https://marketplace.visualstudio.com/items?itemName=RamiAbughazaleh.SilverlightUnitTestAdapter)
+[![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/RamiAbughazaleh.SilverlightUnitTestAdapter)](https://marketplace.visualstudio.com/items?itemName=RamiAbughazaleh.SilverlightUnitTestAdapter)
+[![Open VSIX Gallery](https://img.shields.io/badge/dynamic/xml?label=nightly&query=%2F%2A%5Blocal-name%28.%29%3D%27feed%27%5D%2F%2A%5Blocal-name%28.%29%3D%27entry%27%5D%5B1%5D%2F%2A%5Blocal-name%28.%29%3D%27Vsix%27%5D%2F%2A%5Blocal-name%28.%29%3D%27Version%27%5D&url=http%3A%2F%2Fvsixgallery.com%2Ffeed%2Fextension%2FSilverlight%2520Unit%2520Test%2520Adapter.7bc66174-d984-421f-8bb7-42a7fe553d4a)](http://vsixgallery.com/extension/Silverlight%20Unit%20Test%20Adapter.7bc66174-d984-421f-8bb7-42a7fe553d4a/)
 
 ![Screenshot](Installer/Screenshot.png?raw=true)
 
