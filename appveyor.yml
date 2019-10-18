@@ -1,5 +1,7 @@
 version: 1.0.{build}
 skip_tags: true
+environment:
+  DeployExtension: false
 configuration: Release
 platform: Any CPU
 init:
@@ -49,7 +51,7 @@ build:
   project: SilverlightUnitTestAdapter.sln
   verbosity: quiet
 after_test:
-- ps: Vsix-PushArtifacts | Vsix-PublishToGallery
+- ps: Vsix-PublishToGallery
 artifacts:
 - path: .\Installer\bin\**\*.vsix
   name: VSIX

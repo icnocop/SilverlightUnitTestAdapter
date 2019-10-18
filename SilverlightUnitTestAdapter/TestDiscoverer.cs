@@ -6,6 +6,7 @@ namespace SilverlightUnitTestAdapter
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
@@ -17,6 +18,7 @@ namespace SilverlightUnitTestAdapter
     /// <seealso cref="Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter.ITestDiscoverer" />
     [DefaultExecutorUri(Constants.ExecutorUri)]
     [FileExtension(".dll")]
+    [Category("managed")]
     public class TestDiscoverer : ITestDiscoverer
     {
         /// <summary>
@@ -28,6 +30,8 @@ namespace SilverlightUnitTestAdapter
         /// <param name="discoverySink">The discovery sink.</param>
         public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
         {
+            // To debug, uncomment the next line
+            // Debugger.Launch();
             if (sources == null)
             {
                 throw new ArgumentNullException(nameof(sources));

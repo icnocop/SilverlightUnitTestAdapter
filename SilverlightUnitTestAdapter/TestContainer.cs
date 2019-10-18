@@ -57,6 +57,11 @@ namespace SilverlightUnitTestAdapter
             this.DebugEngines = debugEngines;
         }
 
+        private TestContainer(TestContainer copy)
+            : this(copy.Discoverer, copy.Source, copy.DebugEngines)
+        {
+        }
+
         /// <summary>
         /// Gets the debug engines.
         /// </summary>
@@ -120,7 +125,7 @@ namespace SilverlightUnitTestAdapter
         /// <returns>The test container.</returns>
         public ITestContainer Snapshot()
         {
-            throw new NotImplementedException();
+            return new TestContainer(this);
         }
 
         /// <summary>

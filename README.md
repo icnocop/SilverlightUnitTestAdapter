@@ -15,6 +15,13 @@ Visual Studio 2015
 Visual Studio 2017  
 Visual Studio 2019  
 
+## Visual Studio Requirements
+
+Tools > Options... > Test > Un-check "For improved performance, only use test adapters in test assembly folder or as specified in runsettings file".
+
+Otherwise the following error occurs:  
+`Could not find test executor with URI 'executor://statlighttestadapter/v1'. Make sure that the test executor is installed and supports .net runtime version .`
+
 ## Installation
 
 The Visual Studio extension requires elevation during install and will be installed for all users in a subfolder in Visual Studio's extension directory.
@@ -219,6 +226,9 @@ public class Plugin : IPlugin
 Detailed messages are written in the Output window's "Test" pane.
 
 Enable the `Debug` property in the configuration file to display more verbose information.
+
+Enable unit test explorer logs for more diagnostic messages.
+https://blogs.msdn.microsoft.com/aseemb/2012/03/01/how-to-enable-ute-logs/
 
 ## Resources
 
