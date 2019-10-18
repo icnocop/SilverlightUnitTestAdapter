@@ -39,7 +39,7 @@ namespace SilverlightUnitTestAdapter
             catch (Exception ex)
             {
                 frameworkHandle.SendMessage(TestMessageLevel.Error, ex.ToString());
-                throw;
+                return;
             }
         }
 
@@ -100,7 +100,7 @@ namespace SilverlightUnitTestAdapter
             catch (Exception ex)
             {
                 frameworkHandle.SendMessage(TestMessageLevel.Error, ex.ToString());
-                throw;
+                return;
             }
         }
 
