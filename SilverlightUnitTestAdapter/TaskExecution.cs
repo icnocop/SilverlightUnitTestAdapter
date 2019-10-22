@@ -39,7 +39,7 @@ namespace SilverlightUnitTestAdapter
             this.statLightWrapper = statLightWrapper;
             this.FrameworkHandle = frameworkHandle;
 
-            this.scheduler = new LimitedConcurrencyLevelTaskScheduler(-1);
+            this.scheduler = new LimitedConcurrencyLevelTaskScheduler(1);
         }
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace SilverlightUnitTestAdapter
         {
             Task task = this.CreateTestBasedTask(tests);
             this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, "Start new task");
-            task.Start();
+            task.Start(this.scheduler);
             task.Wait();
 
             this.FrameworkHandle.SendMessage(TestMessageLevel.Informational, "Ended new task");
