@@ -264,23 +264,28 @@ namespace SilverlightUnitTestAdapter.StatLight
                 argument.Append("\"TRX");
                 argument.Append("\"");
 
-                using (Process process = new Process())
+                using (Process process = new Process
                 {
-                    process.StartInfo.FileName = Path.Combine(currentAssemblyPath, "StatLight.exe");
-                    process.StartInfo.Arguments = argument.ToString();
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.RedirectStandardError = true;
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = Path.Combine(currentAssemblyPath, "StatLight.exe"),
+                        Arguments = argument.ToString(),
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    }
+                })
+                {
                     this.logger.SendMessage(TestMessageLevel.Informational, $"\"{process.StartInfo.FileName}\" {process.StartInfo.Arguments}");
 
-                    process.Start();
+                    process.OutputDataReceived += (sender, args) => this.logger.SendMessage(TestMessageLevel.Informational, args.Data);
+                    process.ErrorDataReceived += (sender, args) => this.logger.SendMessage(TestMessageLevel.Informational, args.Data);
 
-                    var outputReader = this.ConsumeReader(process.StandardOutput);
-                    var errorReader = this.ConsumeReader(process.StandardError);
+                    process.Start();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
 
                     process.WaitForExit();
-                    outputReader.Wait();
-                    errorReader.Wait();
 
                     this.logger.SendMessage(TestMessageLevel.Informational, string.Concat(Localized.StatLightExitCodeMessage, process.ExitCode));
                 }
@@ -322,19 +327,6 @@ namespace SilverlightUnitTestAdapter.StatLight
                 RecordStartTests(argument, frameworkHandle);
                 this.ExecuteStatLight(argument);
                 this.ProcessResults(argument.TestCases, argument, frameworkHandle);
-            }
-        }
-
-        private async Task ConsumeReader(TextReader reader)
-        {
-            string text;
-
-            while ((text = await reader.ReadLineAsync()) != null)
-            {
-                if (!string.IsNullOrEmpty(text))
-                {
-                    this.logger.SendMessage(TestMessageLevel.Informational, text);
-                }
             }
         }
     }
