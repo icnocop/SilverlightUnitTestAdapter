@@ -31,7 +31,8 @@ namespace SilverlightUnitTestAdapter
         public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
         {
             // To debug, uncomment the next line
-            // Debugger.Launch();
+            // System.Diagnostics.Debugger.Launch();
+
             if (sources == null)
             {
                 throw new ArgumentNullException(nameof(sources));

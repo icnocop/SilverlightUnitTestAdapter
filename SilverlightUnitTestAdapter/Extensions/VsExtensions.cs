@@ -14,8 +14,13 @@ namespace SilverlightUnitTestAdapter.Extensions
     /// <summary>
     /// Extensions for getting Visual Studio projects, and their items; since the API for this is crufty.
     /// </summary>
-    static class VsExtensions
+    internal static class VsExtensions
     {
+        /// <summary>
+        /// Gets the projects.
+        /// </summary>
+        /// <param name="solutionService">The solution service.</param>
+        /// <returns>The projects.</returns>
         public static IEnumerable<IVsHierarchy> GetProjects(this IVsSolution solutionService)
         {
             IEnumHierarchies projects;
@@ -32,6 +37,11 @@ namespace SilverlightUnitTestAdapter.Extensions
             }
         }
 
+        /// <summary>
+        /// Gets the project output file path.
+        /// </summary>
+        /// <param name="hierarchy">The hierarchy.</param>
+        /// <returns>The project output file paths.</returns>
         public static string GetProjectOutputFilePath(this IVsHierarchy hierarchy)
         {
             // VSITEMID_ROOT gets the current project.

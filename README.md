@@ -19,7 +19,7 @@ Visual Studio 2019
 
 Tools > Options... > Test > Un-check "For improved performance, only use test adapters in test assembly folder or as specified in runsettings file".
 
-Otherwise the following error occurs:  
+Otherwise the following error occurs when trying to run a test:  
 `Could not find test executor with URI 'executor://statlighttestadapter/v1'. Make sure that the test executor is installed and supports .net runtime version .`
 
 ## Installation
@@ -229,6 +229,16 @@ Enable the `Debug` property in the configuration file to display more verbose in
 
 Enable unit test explorer logs for more diagnostic messages.
 https://blogs.msdn.microsoft.com/aseemb/2012/03/01/how-to-enable-ute-logs/
+
+## Debugging in development
+
+Run an experimental instance of Visual Studio, where the VSIX package is automatically installed when building the Installer project.
+
+For example,
+"C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe" /RootSuffix Exp
+
+Otherwise the following error occurs when trying to run a test:  
+`Could not find test executor with URI 'executor://statlighttestadapter/v1'. Make sure that the test executor is installed and supports .net runtime version .`
 
 ## Resources
 

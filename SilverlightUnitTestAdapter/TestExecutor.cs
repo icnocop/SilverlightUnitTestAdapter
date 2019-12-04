@@ -29,6 +29,9 @@ namespace SilverlightUnitTestAdapter
         /// <param name="frameworkHandle">The framework handle.</param>
         public void RunTests(IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
+            // To debug, uncomment the next line
+            // System.Diagnostics.Debugger.Launch();
+
             try
             {
                 StatLightWrapper statLightWrapper = new StatLightWrapper(frameworkHandle, runContext.IsBeingDebugged);
@@ -51,6 +54,9 @@ namespace SilverlightUnitTestAdapter
         /// <param name="frameworkHandle">The framework handle.</param>
         public void RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
+            // To debug, uncomment the next line
+            // System.Diagnostics.Debugger.Launch();
+
             try
             {
                 StringBuilder stringBuilder = new StringBuilder();
@@ -109,6 +115,8 @@ namespace SilverlightUnitTestAdapter
         /// </summary>
         public void Cancel()
         {
+            // To debug, uncomment the next line
+            // System.Diagnostics.Debugger.Launch();
         }
     }
 }

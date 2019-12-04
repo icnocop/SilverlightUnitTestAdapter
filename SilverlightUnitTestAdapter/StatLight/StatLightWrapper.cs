@@ -278,8 +278,8 @@ namespace SilverlightUnitTestAdapter.StatLight
                 {
                     this.logger.SendMessage(TestMessageLevel.Informational, $"\"{process.StartInfo.FileName}\" {process.StartInfo.Arguments}");
 
-                    process.OutputDataReceived += (sender, args) => this.logger.SendMessage(TestMessageLevel.Informational, args.Data);
-                    process.ErrorDataReceived += (sender, args) => this.logger.SendMessage(TestMessageLevel.Informational, args.Data);
+                    process.OutputDataReceived += (sender, args) => this.LogInfo(args.Data);
+                    process.ErrorDataReceived += (sender, args) => this.LogInfo(args.Data);
 
                     process.Start();
                     process.BeginOutputReadLine();
@@ -328,6 +328,16 @@ namespace SilverlightUnitTestAdapter.StatLight
                 this.ExecuteStatLight(argument);
                 this.ProcessResults(argument.TestCases, argument, frameworkHandle);
             }
+        }
+
+        private void LogInfo(string data)
+        {
+            if (string.IsNullOrEmpty(data))
+            {
+                return;
+            }
+
+            this.logger.SendMessage(TestMessageLevel.Informational, data);
         }
     }
 }
