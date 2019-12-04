@@ -1,5 +1,9 @@
 # Change Log
 
+__v1.0.62__ (2019-12-03)
+
+ - Automatically discover tests when the solution is loaded
+
 __v1.0.48__ (2019-03-01)
 
  - Added support for Visual Studio 2017 and Visual Studio 2019
