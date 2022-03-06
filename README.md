@@ -1,4 +1,4 @@
-# <img src="Installer\bluebox.ico" height="32" width="32"> Silverlight Unit Test Adapter
+# ![Logo](logo.png) Silverlight Unit Test Adapter
 
 Visual Studio Unit Test adapter for Silverlight 5
 

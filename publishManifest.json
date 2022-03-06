@@ -14,8 +14,8 @@
       "targetPath": "Installer/Screenshot.png"
     },
     {
-      "pathOnDisk": "Installer\\bluebox.ico",
-      "targetPath": "Installer/bluebox.ico"
+      "pathOnDisk": "logo.png",
+      "targetPath": "logo.png"
     }
   ],
   "overview": "README.md",
