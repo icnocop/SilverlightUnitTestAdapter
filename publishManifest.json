@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json.schemastore.org/vsix-publish",
+  "categories": [
+    "Coding",
+    "Testing",
+    "Web"
+  ],
+  "identity": {
+    "internalName": "SilverlightUnitTestAdapter"
+  },
+  "assetFiles": [
+    {
+      "pathOnDisk": "Installer\\Screenshot.png",
+      "targetPath": "Installer/Screenshot.png"
+    }
+  ],
+  "overview": "README.md",
+  "priceCategory": "free",
+  "publisher": "RamiAbughazaleh",
+  "private": false,
+  "qna": true,
+  "repo": "https://github.com/icnocop/SilverlightUnitTestAdapter"
+}

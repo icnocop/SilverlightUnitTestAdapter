@@ -1,0 +1,182 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+    branches: [ master ]
+    inputs:
+      release:
+        description: 'Publish to Visual Studio Marketplace?'
+        required: true
+        default: 'false'
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    runs-on: windows-latest
+        
+    steps:
+    - name: Set version number
+      run: |
+        $majorVersion = 2
+        $minorVersion = 0
+        $firstBuildYear = 2022
+        $currentDate = Get-Date
+        $currentDate = $currentDate.ToUniversalTime()
+        $currentYear = $currentDate.ToString("yyyy")
+        $buildYear = [Convert]::ToInt32($currentYear)
+        $currentMonthDay = $currentDate.ToString("MMdd")
+        $buildVersion = (($buildYear - $firstBuildYear) * 1200) + ([Convert]::ToInt32($currentMonthDay))
+        echo "VERSION=$majorVersion.$minorVersion.$buildVersion.${{ github.RUN_NUMBER }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf-8 -Append
+
+    - name: Read environmental variables
+      run: |
+        echo VERSION=${{ env.VERSION }}
+        echo GITHUB_WORKSPACE=${{ github.WORKSPACE }}
+        
+    - name: Install Microsoft Silverlight 5 SDK
+      run: |
+        $exeFilePath = "$($env:USERPROFILE)\silverlight_sdk.exe"
+
+        $webclient = New-Object System.Net.WebClient
+
+        $webclient.DownloadFile('https://web.archive.org/web/20190126163602if_/http://download.microsoft.com/download/3/A/3/3A35179D-5C87-4D0A-91EB-BF5FEDC601A4/sdk/silverlight_sdk.exe', $exeFilePath)
+
+        $process = (Start-Process -FilePath "$exeFilePath" -ArgumentList "/quiet /norestart RUNDEVENVSETUP=0" -Wait -Passthru)
+
+        $exitCode = $process.ExitCode
+
+        if ($exitCode -ne 0)
+
+        {
+          Get-Content $logFilePath
+          throw "Command failed with exit code $exitCode."
+        }
+
+        del $exeFilePath
+
+        Write-Host "Microsoft Silverlight 5 SDK successfully installed" -ForegroundColor Green
+
+    - name: Install Microsoft Silverlight 5 Toolkit (December 2011)
+      run: |
+        $msiFilePath = "$($env:USERPROFILE)\Silverlight_5_Toolkit_December_2011.1.msi"
+
+        $logFilePath = "$($env:TEMP)\Silverlight_5_Toolkit_December_2011.1.txt"
+
+        $webclient = New-Object System.Net.WebClient
+
+        $webclient.DownloadFile('https://github.com/MicrosoftArchive/SilverlightToolkit/releases/download/5/Silverlight_5_Toolkit_December_2011.1.msi', $msiFilePath)
+
+        $process = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $msiFilePath /quiet /l*v $logFilePath" -Wait -Passthru)
+
+        $exitCode = $process.ExitCode
+
+        if ($exitCode -ne 0)
+
+        {
+          Get-Content $logFilePath
+          throw "Command failed with exit code $exitCode."
+        }
+
+        del $msiFilePath
+
+        del $logFilePath
+
+        Write-Host "Microsoft Silverlight 5 Toolkit (December 2011) successfully installed" -ForegroundColor Green
+
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Update AssemblyInfo.cs files
+      run: |
+        $files = Get-ChildItem "${{ github.WORKSPACE }}" -recurse -include "*Properties*" | 
+            ?{ $_.PSIsContainer } | 
+            foreach { Get-ChildItem -Path $_.FullName -Recurse -include AssemblyInfo.* }
+        if (-not $files)
+        {
+            Write-Host "Didn't find any files to update."
+            exit 1
+        }
+        else
+        {
+            foreach ($file in $files) {
+                $filecontent = Get-Content($file)
+                attrib $file -r
+                $filecontent -replace "\d+\.\d+\.\d+\.\d+", "${{ env.VERSION }}" | Out-File $file
+                Write-Host "Version applied to '$file'"
+            }
+        }
+    
+    - name: Update vsixmanifest files
+      run: |
+        $files = Get-ChildItem "${{ github.WORKSPACE }}" -recurse -include "source.extension.vsixmanifest"
+        if (-not $files)
+        {
+            Write-Host "Didn't find any files to update."
+            exit 1
+        }
+        else
+        {
+            foreach ($file in $files) {
+                $xml = [xml](Get-Content($file))
+                attrib $file -r
+
+                $node = $xml.PackageManifest.Metadata.Identity
+                $node.Version = "${{ env.VERSION }}"
+
+                $xml.Save($file)
+                Write-Host "Version applied to '$file'"
+            }
+        }
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Setup VSTest
+      uses: darenm/Setup-VSTest@v1
+
+    - name: Build
+      run: msbuild ".\SilverlightUnitTestAdapter.sln" /restore /p:RestorePackagesConfig=true /p:Configuration=${{ matrix.Configuration }} /p:Platform="Any CPU"
+
+    # Upload the VSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: SilverlightUnitTestAdapter-${{ env.VERSION }} ${{ matrix.Configuration }}
+        path: Installer\bin\${{ matrix.Configuration }}\SilverlightUnitTestAdapterInstaller.vsix
+        if-no-files-found: error
+
+    - name: Publish to Open VSIX
+      if: ${{ matrix.Configuration == 'Release' && github.event.inputs.release != 'true' }}
+      run: |
+        [Reflection.Assembly]::LoadWithPartialName("System.Web") | Out-Null
+        $vsixFile = "Installer\bin\${{ matrix.Configuration }}\SilverlightUnitTestAdapterInstaller.vsix"
+        $url = "https://www.vsixgallery.com/api/upload"
+        [byte[]]$bytes = [System.IO.File]::ReadAllBytes($vsixFile)
+             
+        try {
+            $webclient = New-Object System.Net.WebClient
+            $webclient.UploadFile($url, $vsixFile) | Out-Null
+            'OK' | Write-Host -ForegroundColor Green
+        }
+        catch{
+            'FAIL' | Write-Error
+            $_.Exception.Response.Headers["x-error"] | Write-Error
+        }
+
+    - name: Publish extension to Marketplace
+      if: ${{ matrix.Configuration == 'Release' && github.event.inputs.release == 'true' }}
+      uses: cezarypiatek/VsixPublisherAction@0.2
+      with:
+        extension-file: Installer\bin\${{ matrix.Configuration }}\SilverlightUnitTestAdapterInstaller.vsix
+        publish-manifest-file: publishManifest.json
+        personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
