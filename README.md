@@ -14,6 +14,7 @@ Visual Studio Unit Test adapter for Silverlight 5
 Visual Studio 2015  
 Visual Studio 2017  
 Visual Studio 2019  
+Visual Studio 2022  
 
 ## Visual Studio Requirements
 

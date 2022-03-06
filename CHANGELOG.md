@@ -1,5 +1,9 @@
 # Change Log
 
+__v2.0.306__ (2022-03-06)
+
+ - Added support for Visual Studio 2022
+
 __v1.0.62__ (2019-12-03)
 
  - Automatically discover tests when the solution is loaded
