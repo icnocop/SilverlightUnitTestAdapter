@@ -12,6 +12,10 @@
     {
       "pathOnDisk": "Installer\\Screenshot.png",
       "targetPath": "Installer/Screenshot.png"
+    },
+    {
+      "pathOnDisk": "Installer\\bluebox.ico",
+      "targetPath": "Installer/bluebox.ico"
     }
   ],
   "overview": "README.md",
