@@ -1,0 +1,1 @@
+A Frutiger Aero themed test tube mostly opaque/clear with blue accents, on a transparent background so I can use it as a logo. Maybe like a disco ball so that it looks like silver with light bouncing off of it. It will be used as part of the logo for a Visual Studio extension test adapter which allows running Microsoft Silverlight tests.

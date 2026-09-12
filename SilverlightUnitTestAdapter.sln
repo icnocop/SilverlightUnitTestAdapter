@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.32210.238
+# Visual Studio Version 18
+VisualStudioVersion = 18.10.12201.205 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{12E765EA-4F94-44E0-ABC9-F7D10764F03A}"
 	ProjectSection(SolutionItems) = preProject
@@ -21,6 +21,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightUnitTestAdapterTest", "SilverlightUnitTestAdapterTest\SilverlightUnitTestAdapterTest.csproj", "{76EA67C0-4EEE-499F-AF7B-5621B5F96147}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightUnitTest", "SilverlightUnitTest\SilverlightUnitTest.csproj", "{7547D279-EFE0-40AC-A97F-D968046FF5A5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Assets", "Assets", "{FBBF2C9A-2EFA-4D8C-A33C-FE8F4310D1D3}"
+	ProjectSection(SolutionItems) = preProject
+		Assets\A_Frutiger_Aero_themed_test_tube_mostly_opaqueclear_with_blu.jpg = Assets\A_Frutiger_Aero_themed_test_tube_mostly_opaqueclear_with_blu.jpg
+		Assets\prompt.txt = Assets\prompt.txt
+		Assets\regenerate_ico.cmd = Assets\regenerate_ico.cmd
+		Assets\regenerate_ico.py = Assets\regenerate_ico.py
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
