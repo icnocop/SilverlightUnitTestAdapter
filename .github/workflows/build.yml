@@ -21,7 +21,7 @@ jobs:
       matrix:
         configuration: [Debug, Release]
 
-    runs-on: windows-latest
+    runs-on: windows-2022
         
     steps:
     - name: Set version number
