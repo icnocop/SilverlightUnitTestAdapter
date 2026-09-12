@@ -93,7 +93,7 @@ jobs:
         Write-Host "Microsoft Silverlight 5 Toolkit (December 2011) successfully installed" -ForegroundColor Green
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     
     - name: Update AssemblyInfo.cs files
       run: |
